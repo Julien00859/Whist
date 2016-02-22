@@ -228,6 +228,16 @@ var Whist = function Whist(player1, player2, player3, player4) {
               throw "IncorrectMessage"
             }
             // Donner la parole au prochain qui a pas encore pass ou lancer la partie selon les annonces actuelles
+            for (var i in _.range(4)) {
+              next = this.nextPlayer;
+              if (this.players[next].announce != "pass") {
+                this.nextPlayer = next;
+                break;
+              }
+              if (i == 3) {
+                this.state = 1;
+              }
+            }
           break;
 
       }
