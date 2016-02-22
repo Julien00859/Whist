@@ -3,7 +3,7 @@ const _ = require("underscore");
 // Create a deck with carts given or all carts
 var Carts = function Carts(carts) {
   var self = this;
-  this.symbols = ["Heart","Spade","Diamond","Club"]; // spades (♠), hearts (♥), diamonds (♦) and clubs (♣)
+  this.symbols = ["Heart","Diamond","Club","Spade"]; // spades (♠), hearts (♥), diamonds (♦) and clubs (♣)
   this.values = ["Two","Three","Four","Five","Six","Seven","Heigh","Nine","Ten","Valet","Queen","King","As"];
 
   if (typeof carts != "undefined") {
@@ -85,20 +85,30 @@ var Carts = function Carts(carts) {
       }
     }
   }
+
+  this.toString = function toString() {
+    var carts = [];
+    for (var cart in this.carts) {
+      carts.push(this.carts[cart].toString())
+    }
+    return carts.join(" ");
+  }
 }
 
 var Whist = function Whist(player1, player2, player3, player4) {
   Carts.call(this);
+  this.shuffle()
   this.players = {};
   var players = _.toArray(arguments);
   for (var i in players) {
     this.players[players[i]] = {
-      carts: new Carts(this.carts.pull(13)),
+      carts: new Carts(this.pull(13)),
       announce: undefined,
       announceLvl: 0
     }
+    this.players[players[i]].carts.sort()
   }
-  this.announces {
+  this.announces = {
     "Grand chelem": {
       success: 200,
       looseMe: -200,
@@ -189,46 +199,46 @@ var Whist = function Whist(player1, player2, player3, player4) {
 
   this.state = 0;
   this.play = function play(player, message) {
-    if (player == this.listenTo) {
+    if (player == this.currentPlayer) {
       switch (this.state) {
         // Annonces
         case 0:
-            if ("announce" in message && typeof message.announce == "string") {
-              if (message.announce] in this.announces) {
-                if (message.announce == "Pass") {
+          if ("announce" in message && typeof message.announce == "string") {
+            if (message.announce in this.announces) {
+              if (message.announce == "Pass") {
+                this.players[player].announceLvl = 0;
+                this.players[player].announce = message.announce
+
+              } else if (_.contains(["Solo","Emballage"], message.announce) && "announceLvl" in message && typeof message.announceLvl == "number") {
+                if (this.players[player].announce == undefined || this.announces[message.announce].strength + message.announceLvl > this.announces[this.players[player].announce].strength + this.players[player].announceLvl) {
+                  this.players[player].announceLvl = message.announceLvl;
+                  this.players[player].announce = message.announce
+                } else {
+                  throw "CannotAnnounceLess"
+                }
+
+              } else if (!(_.contains(["Solo","Emballage","Pass"], message.announce))) {
+                if (this.players[player].announce == undefined || this.announces[message.announce].strength > this.announces[this.players[player].announce].strength + this.players[player].announceLvl) {
                   this.players[player].announceLvl = 0;
                   this.players[player].announce = message.announce
 
-                } else if (_.contains(["Solo","Emballage"], message.announce) && "announceLvl" in message && typeof message.announceLvl == "integer") {
-                  if (message.announceLvl. > this.players[player].announceLvl) {
-                    this.players[player].announceLvl = message.announceLvl;
-
-                  } else {
-                    throw "CannotAnnouncesLess"
-                  }
-
-                } else if (!(_.contains(["Solo","Emballage","Pass"], message.announce))) {
-                  if (this.announces[message.announce].strength > this.announces[this.players[player].announce].strength + this.players[player].announceLvl) {
-                    this.players[player].announceLvl = 0;
-                    this.players[player].announce = message.announce
-
-                  } else {
-                    throw "CannotAnnouncesLess"
-                  }
-
                 } else {
-                  throw "IncorrectMessage"
+                  throw "CannotAnnounceLess"
                 }
 
               } else {
-                throw "IncorrectAnnounce"
+                throw "IncorrectMessageContent"
               }
 
             } else {
-              throw "IncorrectMessage"
+              throw "IncorrectAnnounce"
             }
-            // Donner la parole au prochain qui a pas encore pass ou lancer la partie selon les annonces actuelles
-          break;
+
+          } else {
+            throw "IncorrectMessageType"
+          }
+          // Donner la parole au prochain qui a pas encore pass ou lancer la partie selon les annonces actuelles
+        break;
 
       }
     } else {
