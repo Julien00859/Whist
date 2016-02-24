@@ -226,144 +226,148 @@ var Whist = function Whist(player1, player2, player3, player4) {
           if ("announce" in message && typeof message.announce === "string") {
             // On vérifie que l'annonce existe
             if (_.contains(allowedAnn, message.announce)) {
+              if (_.isUndefined(this.players[player].announce.name) || this.players[player].announce.name !== "Passer") {
+                // On vérifie si on est le dernier à annoncer ou pas
+                var amITheLastOneToAnnounce = this.players[player].announce.name === "Premier" || (typeof this.players[this.nextPlayer()].announce.name !== "undefined" && this.players[this.nextPlayer()].announce.name !== "Premier");
 
-              // On vérifie si on est le dernier à annoncer ou pas
-              var amITheLastOneToAnnounce = this.players[player].announce.name === "Premier" || (typeof this.players[this.nextPlayer()].announce.name !== "undefined" && this.players[this.nextPlayer()].announce.name !== "Premier");
-
-              // On regarde le type de l'annonce
-              switch (message.announce) {
-                case "Passer":
-                  if (this.players[player].announce == "Emballage") {
-                    var self = this;
-                    var theOtherPlayer = _.chain(Object.keys(this.players).filter(function(p){return self.players[p].announce.symbol == self.players[player].announce.symbol})).without(player).first();
-                    this.players[theOtherPlayer].announce.name = "Passer";
-                    this.players[theOtherPlayer].announce.level = 0;
-                    this.players[theOtherPlayer].announce.symbol = undefined;
-                  }
-                  this.players[player].announce.name = "Passer";
-                  this.players[player].announce.level = 0;
-                  this.players[player].announce.symbol = undefined;
-                  break;
-                case "Solo":
-                case "Emballage":
-                  // Dans le cas d'un solo ou d'en emballage, le joueur doit spécifier deux arguments supplémentaire:
-                  // L'enchère de l'annonce (type number)
-                  // Le symbole dans lequel il annonce (dont la valeur doit exister)
-                  if ("announceLevel" in message && typeof message.announceLevel === "number" && "announceSymbol" in message && _.contains(this.symbols, message.announceSymbol)) {
-                    // On vérifie que le joueur possède au moins une carte de ce symbole
-                    if (_.contains(this.players[player].carts.carts.map(function(x){return x.symbol}), message.announceSymbol)) {
-                      // On vérifie que le solo annoncé n'est pas un emballage ou inversemment
+                // On regarde le type de l'annonce
+                switch (message.announce) {
+                  case "Passer":
+                    if (this.players[player].announce == "Emballage") {
                       var self = this;
-                      if (_.contains(Object.keys(this.players).map(function(p){return self.players[p].announce.symbol}), message.announceSymbol)) {
-                        message.announce = "Emballage";
+                      var theOtherPlayer = _.chain(Object.keys(this.players).filter(function(p){return self.players[p].announce.symbol == self.players[player].announce.symbol})).without(player).first();
+                      this.players[theOtherPlayer].announce.name = "Passer";
+                      this.players[theOtherPlayer].announce.level = 0;
+                      this.players[theOtherPlayer].announce.symbol = undefined;
+                    }
+                    this.players[player].announce.name = "Passer";
+                    this.players[player].announce.level = 0;
+                    this.players[player].announce.symbol = undefined;
+                    break;
+                  case "Solo":
+                  case "Emballage":
+                    // Dans le cas d'un solo ou d'en emballage, le joueur doit spécifier deux arguments supplémentaire:
+                    // L'enchère de l'annonce (type number)
+                    // Le symbole dans lequel il annonce (dont la valeur doit exister)
+                    if ("announceLevel" in message && typeof message.announceLevel === "number" && "announceSymbol" in message && _.contains(this.symbols, message.announceSymbol)) {
+                      // On vérifie que le joueur possède au moins une carte de ce symbole
+                      if (_.contains(this.players[player].carts.carts.map(function(x){return x.symbol}), message.announceSymbol)) {
+                        // On vérifie que le solo annoncé n'est pas un emballage ou inversemment
+                        var self = this;
+                        if (_.contains(Object.keys(this.players).map(function(p){return self.players[p].announce.symbol}), message.announceSymbol)) {
+                          message.announce = "Emballage";
 
-                      } else if (!(_.contains(Object.keys(this.players).map(function(p){return self.players[p].announce.symbol}), message.announceSymbol))) {
-                        message.announce = "Solo";
-                      }
+                        } else if (!(_.contains(Object.keys(this.players).map(function(p){return self.players[p].announce.symbol}), message.announceSymbol))) {
+                          message.announce = "Solo";
+                        }
 
-                      // On sinde solo et emballage
-                      if (message.announce == "Solo") {
-                        // Tester si il y a un joueur après nous qui peut emballer (undefined ou premier)
-                        // Tester la puissance de la carte
-                        if (!amITheLastOneToAnnounce) {
-                          if (typeof this.players[player].announce.name === "undefined" || this.announces[this.players[player].announce.name].strength + this.players[player].announce.level < this.announces[message.announce].strength + message.announceLevel) {
-                            this.players[player].announce.name = message.announce;
-                            this.players[player].announce.level = message.announceLevel;
-                            this.players[player].symbol = message.announceSymbol;
+                        // On sinde solo et emballage
+                        if (message.announce == "Solo") {
+                          // Tester si il y a un joueur après nous qui peut emballer (undefined ou premier)
+                          // Tester la puissance de la carte
+                          if (!amITheLastOneToAnnounce) {
+                            if (typeof this.players[player].announce.name === "undefined" || this.announces[this.players[player].announce.name].strength + this.players[player].announce.level < this.announces[message.announce].strength + message.announceLevel) {
+                              this.players[player].announce.name = message.announce;
+                              this.players[player].announce.level = message.announceLevel;
+                              this.players[player].symbol = message.announceSymbol;
 
+                            } else {
+                              throw "InvalidAnnounce Cannot announce less";
+                            }
                           } else {
-                            throw "InvalidAnnounce Cannot announce less";
+                            throw "InvalidAnnounce Last player cannot go solo";
                           }
                         } else {
-                          throw "InvalidAnnounce Last player cannot go solo";
+                          // Tester qu'on a l'autorisation de parler.
+                          if (this.players[player].announce.canTalk) {
+
+                            // Tester qu'on a soit
+                            // Un joueur en plus de moi-même qui est solo dans ce symbole
+                            // Deux joueurs en tout dont moi-même qui ont emballé le même symbole
+                            var playersWithSameSymboleAsMe = Object.keys(this.players).filter(function(p){return self.players[p].announce.symbol == message.announceSymbol});
+                            if (playersWithSameSymboleAsMe.length === 1) {
+                              // Tester qu'on ne change pas de symbole pour les emballages et en même temps qu'on ne change pas de type d'annonce
+                              if (typeof this.players[player].announce.name === "undefined" || this.player[player].announce.symbol === message.symbol) {
+                                // Tester que l'annonce est plus forte que la précédente
+                                if (typeof this.player[player].announce.name === "undefined" || this.announces[this.players[player].announce.name].strength + this.players[player].announce.level < this.announces[message.announce].strength + message.announceLevel) {
+                                  this.players[player].announce.name = message.announce;
+                                  this.players[player].announce.level = message.announceLevel;
+                                  this.players[player].symbol = message.announceSymbol;
+
+                                  // playersWithSameSymboleAsMe[0] contient le nom de l'autre joueur
+                                  this.players[playersWithSameSymboleAsMe[0]].announce.name = message.announce;
+                                  this.players[playersWithSameSymboleAsMe[0]].announce.level = message.announceLevel;
+                                  this.players[playersWithSameSymboleAsMe[0]].symbol = message.announceSymbol;
+                                  this.players[playersWithSameSymboleAsMe[0]].canTalk = false;
+                                }
+                                else {
+                                  throw "InvalidAnnounce Cannot announce less"
+                                }
+                              } else {
+                                throw "InvalidAnnounce Cannot change announced symbol";
+                              }
+
+                            } else if (playersWithSameSymboleAsMe.length === 2 && _.contains(playersWithSameSymboleAsMe, player)) {
+                              // Tester qu'on ne change pas de symbole pour les emballages et en même temps qu'on ne change pas de type d'annonce
+                              if (typeof this.players[player].announce.name === "undefined" || this.player[player].announce.symbol === message.symbol) {
+                                // Tester que l'annonce est plus forte que la précédente
+                                if (typeof this.player[player].announce.name === "undefined" || this.announces[this.players[player].announce.name].strength + this.players[player].announce.level < this.announces[message.announce].strength + message.announceLevel) {
+                                  this.players[player].announce.name = message.announce;
+                                  this.players[player].announce.level = message.announceLevel;
+                                  this.players[player].symbol = message.announceSymbol;
+
+                                  var theOtherPlayer = playersWithSameSymboleAsMe.filter(function(p){return p != player})[0]
+                                  this.players[theOtherPlayer].announce.name = message.announce;
+                                  this.players[theOtherPlayer].announce.level = message.announceLevel;
+                                  this.players[theOtherPlayer].symbol = message.announceSymbol;
+                                }
+                                else {
+                                  throw "InvalidAnnounce Cannot announce less";
+                                }
+                              } else {
+                                throw "InvalidAnnounce Cannot change announced symbol";
+                              }
+                            } else {
+                              throw "InvalidAnnounce Cannot follow a player already followed";
+                            }
+                          } else {
+                            throw "InvalidAnnounce Cannot Talk"
+                          }
                         }
                       } else {
-                        // Tester qu'on a l'autorisation de parler.
-                        if (this.players[player].announce.canTalk) {
+                        throw "InvalidAnnounce No cart of the following symbol: \"" + message.announceSymbol + "\" found in the carts of " + player;
+                      }
 
-                          // Tester qu'on a soit
-                          // Un joueur en plus de moi-même qui est solo dans ce symbole
-                          // Deux joueurs en tout dont moi-même qui ont emballé le même symbole
-                          var playersWithSameSymboleAsMe = Object.keys(this.players).filter(function(p){return self.players[p].announce.symbol == message.announceSymbol});
-                          if (playersWithSameSymboleAsMe.length === 1) {
-                            // Tester qu'on ne change pas de symbole pour les emballages et en même temps qu'on ne change pas de type d'annonce
-                            if (typeof this.players[player].announce.name === "undefined" || this.player[player].announce.symbol === message.symbol) {
-                              // Tester que l'annonce est plus forte que la précédente
-                              if (typeof this.player[player].announce.name === "undefined" || this.announces[this.players[player].announce.name].strength + this.players[player].announce.level < this.announces[message.announce].strength + message.announceLevel) {
-                                this.players[player].announce.name = message.announce;
-                                this.players[player].announce.level = message.announceLevel;
-                                this.players[player].symbol = message.announceSymbol;
+                    } else {
+                      throw "InvalidMessage Missing announceLevel (or wrong type) or announceSymbol (or wrong value): " + Object.keys(message).join(", ");
+                    }
+                    break;
 
-                                // playersWithSameSymboleAsMe[0] contient le nom de l'autre joueur
-                                this.players[playersWithSameSymboleAsMe[0]].announce.name = message.announce;
-                                this.players[playersWithSameSymboleAsMe[0]].announce.level = message.announceLevel;
-                                this.players[playersWithSameSymboleAsMe[0]].symbol = message.announceSymbol;
-                                this.players[playersWithSameSymboleAsMe[0]].canTalk = false;
-                              }
-                              else {
-                                throw "InvalidAnnounce Cannot announce less"
-                              }
-                            } else {
-                              throw "InvalidAnnounce Cannot change announced symbol";
-                            }
-
-                          } else if (playersWithSameSymboleAsMe.length === 2 && _.contains(playersWithSameSymboleAsMe, player)) {
-                            // Tester qu'on ne change pas de symbole pour les emballages et en même temps qu'on ne change pas de type d'annonce
-                            if (typeof this.players[player].announce.name === "undefined" || this.player[player].announce.symbol === message.symbol) {
-                              // Tester que l'annonce est plus forte que la précédente
-                              if (typeof this.player[player].announce.name === "undefined" || this.announces[this.players[player].announce.name].strength + this.players[player].announce.level < this.announces[message.announce].strength + message.announceLevel) {
-                                this.players[player].announce.name = message.announce;
-                                this.players[player].announce.level = message.announceLevel;
-                                this.players[player].symbol = message.announceSymbol;
-
-                                var theOtherPlayer = playersWithSameSymboleAsMe.filter(function(p){return p != player})[0]
-                                this.players[theOtherPlayer].announce.name = message.announce;
-                                this.players[theOtherPlayer].announce.level = message.announceLevel;
-                                this.players[theOtherPlayer].symbol = message.announceSymbol;
-                              }
-                              else {
-                                throw "InvalidAnnounce Cannot announce less";
-                              }
-                            } else {
-                              throw "InvalidAnnounce Cannot change announced symbol";
-                            }
-                          } else {
-                            throw "InvalidAnnounce Cannot follow a player already followed";
-                          }
-                        } else {
-                          throw "InvalidAnnounce Cannot Talk"
-                        }
+                  // Toutes les autres annonces
+                  default:
+                    if (this.players[player].announce.name !== "Premier") {
+                      if (typeof this.players[player].announce.name === "undefined" || this.announces[this.players[player].announce.name].strength + this.players[player].announce.level < this.announces[message.announce].strength) {
+                        this.players[player].announce.name = message.announce;
+                        this.players[player].announce.level = 0;
+                        this.players[player].announce.symbol = undefined;
+                        this.players[player].announce.canTalk = true;
+                      } else {
+                        throw "InvalidAnnounce Cannot announce less";
                       }
                     } else {
-                      throw "InvalidAnnounce No cart of the following symbol: \"" + message.announceSymbol + "\" found in the carts of " + player;
+                      throw "InvalidAnnounce Premier can only announce \"Emballer\""
                     }
+                } // End Switch
 
-                  } else {
-                    throw "InvalidMessage Missing announceLevel (or wrong type) or announceSymbol (or wrong value): " + Object.keys(message).join(", ");
-                  }
-                  break;
+                // Vérifier si il reste soit
+                // Des joueurs n'ayant encore rien dit
+                // Un joueur qui a annoncé premier
+                // Personne... stopper la partie car tout le monde a passé
 
-                // Toutes les autres annonces
-                default:
-                  if (this.players[player].announce.name !== "Premier") {
-                    if (typeof this.players[player].announce.name === "undefined" || this.announces[this.players[player].announce.name].strength + this.players[player].announce.level < this.announces[message.announce].strength) {
-                      this.players[player].announce.name = message.announce;
-                      this.players[player].announce.level = 0;
-                      this.players[player].announce.symbol = undefined;
-                      this.players[player].announce.canTalk = true;
-                    } else {
-                      throw "InvalidAnnounce Cannot announce less";
-                    }
-                  } else {
-                    throw "InvalidAnnounce Premier can only announce \"Emballer\""
-                  }
-              } // End Switch
-
-              // Vérifier si il reste soit
-              // Des joueurs n'ayant encore rien dit
-              // Un joueur qui a annoncé premier
-              // Personne... stopper la partie car tout le monde a passé
-
+              } else {
+                throw "InvalidAnnounce Cannot announce after passed"
+              }
+              
             } else {
               throw "InvalidAnnounce Invalid Name";
             }
