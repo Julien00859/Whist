@@ -2,6 +2,7 @@
   "name": "Whist",
   "license": "MIT",
   "dependencies": {
+    "qunit": "^0.9.0",
     "underscore": "^1.8.3"
   }
 }

@@ -41,7 +41,7 @@ var Carts = function Carts(carts) {
   // Get the given cart from the deck
   this.get = function get(cart) {
     if (_.contains(this.carts, cart)) {
-      return this.pull(this.carts.indexOf(cart), 1);
+      return this.pull(this.carts.indexOf(cart), 1)[0];
     } else {
       throw "CartNotFound";
     }
@@ -49,15 +49,17 @@ var Carts = function Carts(carts) {
 
   // Append one or many carts at the end
   this.add = function add(carts) {
-    if (typeof carts == "Array") {
-      this.carts.extend(carts)
-    } else if (typeof carts == "Object") {
+    if (_.isArray(carts)) {
+      this.carts = this.carts.concat(carts)
+    } else if (_.isObject(carts)) {
       this.carts.push(carts)
+    } else {
+      throw "InvalidType"
     }
   }
 
   // Sort the carts by symbol and then by number
-  this.sort = function shuffle() {
+  this.sort = function sort() {
     self.carts.sort(function(cartA, cartB) {
       if (cartA.symbol != cartB.symbol) {
         return self.symbols.indexOf(cartA.symbol) - self.symbols.indexOf(cartB.symbol);
@@ -363,7 +365,7 @@ var Whist = function Whist(player1, player2, player3, player4) {
               // Personne... stopper la partie car tout le monde a passé
 
             } else {
-              throw "InvalidAnnounce The given announce:\"" + message.announce + "\" isn't in of the following list: " + allowedAnn.join(", ");
+              throw "InvalidAnnounce Invalid Name";
             }
 
           } else {
@@ -376,5 +378,5 @@ var Whist = function Whist(player1, player2, player3, player4) {
   }
 }
 
-module.exports.carts = Carts;
-module.exports.whist = Whist;
+module.exports.Carts = Carts;
+module.exports.Whist = Whist;
