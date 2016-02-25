@@ -51,7 +51,8 @@ test("Whist()", function(){
   partie = new carts.Whist("Player 1", "Player 2", "Player 3", "Player 4");
   ok(_.isUndefined(partie.playTurn(partie.currentPlayer, {announce: "Premier"})), "Le premier peut annoncer Premier");
   _.without(Object.keys(partie.players), partie.currentPlayer).forEach(function(player, i){
-    raises(function() {partie.playTurn(player, {announce: "Passer"})}, "Mais pas les autres #" + (+i+1))
+    partie.currentPlayer = player;
+    raises(function() {partie.playTurn(player, {announce: "Premier"})}, "Mais pas les autres #" + (+i+1))
   });
 
   partie = new carts.Whist("Player 1", "Player 2", "Player 3", "Player 4");
