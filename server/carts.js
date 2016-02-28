@@ -95,6 +95,38 @@ var Carts = function Carts(carts) {
     }
     return carts.join(" ");
   }
+
+  this.contains = function contains(cart) {
+    return _.contains(this.carts, cart)
+  }
+}
+
+var getCartsFromString = function getCartsFromString(str) {
+  var carts = [];
+  var symbols = {"♥": "Heart", "♠": "Spade", "♦": "Diamond", "♣": "Club"};
+  var names = {"2": "Two", "3": "Three", "4": "Four", "5": "Five", "6": "Six", "7": "Seven", "8": "Heigh", "9": "Nine", "10": "Ten","V": "Valet", "Q": "Queen", "K": "King","A": "As"};
+  str = str.split(" ");
+
+  for (var i = 0 in str) {
+    if (str[i].length === 2) {
+      var value = str[i][0]
+      var symbol = str[i][1]
+    } else {
+      var value = str[i].slice(0, 2);
+      var symbol = str[i][2]
+    }
+    carts.push({
+      value: parseInt(Object.keys(names).indexOf(value) + 2),
+      symbol: symbols[symbol],
+      name: names[value],
+      toString: function toString() {
+        var symbols = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
+        return "" + (this.value < 11 ? this.value : this.name[0]) + symbols[this.symbol];
+      }
+    });
+  }
+  return carts;
 }
 
 module.exports.Carts = Carts;
+module.exports.getCartsFromString = getCartsFromString;
