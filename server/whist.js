@@ -378,6 +378,12 @@ var Whist = function Whist(players) {
     var carts = new Carts();
     carts.shuffle();
 
+    // Création de la gestion des tour
+    this.game = {
+      folds: []
+      turn: 1
+    }
+
     // Création de la mapping des joueurs
     if (players.length === 4 ) {
       this.players = {};
@@ -468,7 +474,27 @@ var Whist = function Whist(players) {
           break;
 
         case STATE_PLAY:
-          break;
+          if (this.game.folds.length < this.game.turn) this.game.folds.append(new Carts([]));
+          if ("cart" in message) {
+            var cart = Carts.getCartsFromString(message.cart)[0];
+            if (this.players[this.currentPlayer].carts.contains(cart)) {
+
+              // Le premier joue ce qu'il veut
+              if (_.isEmpty(this.game.folds[this.game.turn])) {
+                this.game.folds[this.game.turn].add(this.players[this.currentPlayer].carts.get(cart));
+
+              // Les autres doivent suivre si ils peuvent
+              } else if (this.game.folds[this.game.turn].carts[0].symbol == cart.symbol) {
+                this.game.folds[this.game.turn].add(this.players[this.currentPlayer].carts.get(cart));
+
+              } else if (_.any(this.players[this.currentPlayer].carts.carts,function(c) {return this.players[this.currentPlayer].carts.carts[c].symbol == this.game.folds[this.game.turn].carts[0].symbol}) == false) {
+                this.game.folds[this.game.turn].add(this.players[this.currentPlayer].carts.get(cart));
+              } else {
+                throw "Le joueur doit suivre"
+              }
+            }
+          }
+          if (this.game.folds[this.game.turn].length === 4) this.game.turn++;
 
         case STATE_END:
           break;
