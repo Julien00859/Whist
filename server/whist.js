@@ -199,14 +199,6 @@ function dealWithAnnounce(message) {
 
 function announceGetNextPlayerAndMaybeChangeState() {
   var self = this;
-  if (Object.keys(this.players).filter(function(p){return self.players[p].announce.name === "Premier" || _.isUndefined(self.players[p].announce.name)}).length > 0) {
-    // Il reste des joueurs qui n'ont pas annoncé, on leur donne la parole un à un
-    do {
-      this.currentPlayer = nextPlayer.call(this);
-    } while (!_.isUndefined(this.players[this.currentPlayer].announce.name) || this.players[this.currentPlayer].announce.name === "Premier");
-
-  } else {
-    // Tout le monde a annoncé ou passé
     // On compte le nombre de personnes qui ont passé
     switch (Object.keys(this.players).filter(function(p){return self.players[p].announce.name === "Passer").length) {
       case 4:
@@ -223,7 +215,6 @@ function announceGetNextPlayerAndMaybeChangeState() {
         switch (ANNOUNCES[this.players[pl].announce.name].type) {
           case "Solo":
             this.atoux = this.players[pl].announce.symbole;
-            this.currentPlayer = Object.keys(this.players)[0];
             break;
           case "Abondance":
             this.atoux = this.players[pl].announce.symbole;
@@ -249,9 +240,19 @@ function announceGetNextPlayerAndMaybeChangeState() {
         }
         // Sinon on break pas pour entrer dans le cas suivant
       default:
-        // Dans tous les autres cas, on lance les enchères
-        this.currentPlayer = Object.keys(this.players)[0]
-        this.state = STATE_BIDS;
+        // Dans tous les autres cas, on donne la parole à celui dont l'annonce est la plus faible
+        var self = this;
+
+        this.currentPlayer = Object.keys(this.players).filter(function(pl){
+          // On ne garde que ceux qui n'ont pas passé et qui ne sont pas muet
+          return self.players[pl].announce.name !== "Passer" && self.players[pl].announce.canTalk
+        }).map(function(pl){
+          // On ne garde que le nom de joueur (index 0), son annonce (index 1) et le symbole de l'annonce (ou pique qui est le plus faible)
+          return [pl, self.players[pl].announce.name, _.isUndefined(self.players[pl].announce.symbol) ? "Spade" : self.players[pl].announce.symbol]
+        }).sort(function(tpl1, tpl2){
+          // On trie par ordre croissant d'annonce
+          return Object.keys(ANNOUNCES).reverse().indexOf(tpl1[1]) + (this.carts.symbols.reverse().indexOf(tpl1[2]) / 4) - Object.keys(ANNOUNCES).reverse().indexOf(tpl2[1]) + (this.carts.symbols.reverse().indexOf(tpl2[2]) / 4)}
+        )[0][0]; // On prend le premier tulple et son pseudo
     }
   }
 }
@@ -320,7 +321,45 @@ function dealWithBids(message) {
 }
 
 function announceGetNextPlayerAndMaybeChangeState() {
+  // On regarde si il reste des joueurs voulant enchérir
+  switch (Object.keys(this.players).filter(function(p){return self.players[p].announce.name === "Passer").length) {
+    case 4:
+      // Tout le monde a passé, on arrête
+      this.state = STATE_END;
+    case 3:
+      // Tout le monde a passé sauf un joueur, il gagne les enchère et la partie se lance
+      this.currentPlayer = Object.keys(this.players)[0]; // Par défaut celui qui entre est le premier à avoir annoncé
 
+      // On récupère celui qui a annoncé qqch
+      var pl = Object.keys(this.players).filter(function(p){return self.players[p].announce.name !== "Passer")[0];
+
+      // En fonction du type de cette annonce, on donnera ou pas d'atoux et il pourra ou pas commencer
+      switch (ANNOUNCES[this.players[pl].announce.name].type) {
+        case "Solo":
+          this.atoux = this.players[pl].announce.symbole;
+          break;
+        case "Abondance":
+          this.atoux = this.players[pl].announce.symbole;
+          this.currentPlayer = pl;
+          break;
+        case "Chelem":
+          this.currentPlayer = pl;
+          break;
+      }
+      this.state = STATE_PLAY;
+      break;
+    case 2:
+      // Deux joueurs ont annoncé, on regarde si ils se sont emballés l'un l'autre ou si ils sont trou ensemble
+      var players = Object.keys(this.players).filter(function(p){return self.players[p].announce.name !== "Passer")
+      var playersType = players.map(function(p){return self.players[p].announce.type});
+      if (_.every(playersType, function(t){return t === "Emballage"}) || _.every(playersType, function(t){return t === "Trou"})) {
+        if (playersType[0] === "Emballage") this.atoux = this.players[players[0]].announce.symbole;
+        else if (this.players[players[0]].announce.name === "Bouche-trou") this.currentPlayer = players[0];
+        else if (this.players[players[1]].announce.name === "Bouche-trou") this.currentPlayer = players[1];
+        else throw "Internal Error";
+        this.state = STATE_PLAY;
+        break;
+      }
 }
 
 function nextPlayer(player) {
