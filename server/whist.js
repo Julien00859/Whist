@@ -65,7 +65,7 @@ const ANNOUNCES = {
   "Emballage 13": {
     success: 30, looseMe: -30, winOthers: 30,
     folds: 13,
-    type: "Emballage"
+    type: "Emballage",
     next: undefined
   },
   "Piccolo": {
@@ -119,7 +119,7 @@ const ANNOUNCES = {
   "Emballage 9": {
     success: 10, looseMe: -13, winOthers: 13,
     folds: 9,
-    type: "Emballage"
+    type: "Emballage",
     next: "Emballage 10"
   },
   "Emballage 8": {
@@ -192,7 +192,7 @@ Whist.prototype.newNormalGame = function newNormalGame(player) {
     this.players[pl].cards.sort()
 
     // Vérification pour voir si il a 3 as (Trou)
-    if (_.any(this.players[pl].cards.filter(function(c){return c.name === "As"}).length === 3) {
+    if (_.any(this.players[pl].cards.filter(function(c){return c.name === "As"})).length === 3) {
       this.players[pl].announce.name = "Trou"; // On force son annonce à être trou
       this.state = STATE_ANNOUNCE_AFTER_HOLE; // Gestion spécial des annonces
       var trou = pl;
@@ -235,7 +235,7 @@ Whist.prototype.playTurn = function playTurn(player, message) {
 
       case STATE_ANNOUNCE_AFTER_HOLE:
         // Récupère la liste d'annonce sans le Solo et l'Emballage (qui sont trop faibles pour battre le trou)
-        if (_.isUndefined(availableAnnounces)) var availableAnnounces = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ann.type !== "Solo" && ann.type !== "Emballage" && ann.type !== "Piccolo"});
+        if (_.isUndefined(availableAnnounces)) var availableAnnounces = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ann.type !== "Solo" && ann.type !== "Emballage" && ann.type !== "Piccolo"}));
 
         if ("announce" in message) {
           if (_.contains(availableAnnounces, message.announce)) {
@@ -315,10 +315,10 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(message) {
                 }
                 break;
 
-              case "Emballage"
+              case "Emballage":
                 var self = this;
                 // On vérifie qu'un et un seul joueur avait déjà annoncé cette couleur avant
-                var others = Object.keys(this.players).filter(function(pl){return self.players[pl].announce.symbol === message.announceSymbol}
+                var others = Object.keys(this.players).filter(function(pl){return self.players[pl].announce.symbol === message.announceSymbol});
                 if (others.length === 1) {
                   this.players[this.currentPlayer].announce.name = "Emballage 8";
                   this.players[this.currentPlayer].announce.symbol = message.announceSymbol;
@@ -346,7 +346,7 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(message) {
                 }
                 break;
             }
-          else {
+          } else {
             throw "Le joueur doit posséder au moins une carte du symbole annoncé";
           }
 
@@ -377,62 +377,61 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(message) {
 
 Whist.prototype.announceGetNextPlayerAndMaybeChangeState = function announceGetNextPlayerAndMaybeChangeState() {
   var self = this;
-    // On compte le nombre de personnes qui n'ont pas passé
-    var notPass = Object.keys(this.players).filter(function(p){return self.players[p].announce.name !== "Passer")
-    switch (4 - notPass) {
-      case 4:
-        // Tout le monde a passé, on arrête
-        this.state = STATE_END;
-      case 3:
-        // Tout le monde a passé sauf un joueur, il gagne les enchère et la partie se lance
-        this.currentPlayer = Object.keys(this.players)[0]; // Par défaut celui qui entre est le premier à avoir annoncé
+  // On compte le nombre de personnes qui n'ont pas passé
+  var notPass = Object.keys(this.players).filter(function(p){return self.players[p].announce.name !== "Passer"});
+  switch (4 - notPass) {
+    case 4:
+      // Tout le monde a passé, on arrête
+      this.state = STATE_END;
+    case 3:
+      // Tout le monde a passé sauf un joueur, il gagne les enchère et la partie se lance
+      this.currentPlayer = Object.keys(this.players)[0]; // Par défaut celui qui entre est le premier à avoir annoncé
 
-        // On récupère celui qui a annoncé qqch
-        var pl = Object.keys(this.players).filter(function(p){return self.players[p].announce.name !== "Passer")[0];
+      // On récupère celui qui a annoncé qqch
+      var pl = Object.keys(this.players).filter(function(p){return self.players[p].announce.name !== "Passer"})[0];
 
-        // En fonction du type de cette annonce, on donnera ou pas d'atoux et il pourra ou pas commencer
-        switch (ANNOUNCES[this.players[pl].announce.name].type) {
-          case "Solo":
-            this.game.trump = this.players[pl].announce.symbol;
-            break;
-          case "Abondance":
-            this.game.trump = this.players[pl].announce.symbol;
-            this.currentPlayer = pl;
-            break;
-          case "Chelem":
-            this.currentPlayer = pl;
-            break;
-        }
+      // En fonction du type de cette annonce, on donnera ou pas d'atoux et il pourra ou pas commencer
+      switch (ANNOUNCES[this.players[pl].announce.name].type) {
+        case "Solo":
+          this.game.trump = this.players[pl].announce.symbol;
+          break;
+        case "Abondance":
+          this.game.trump = this.players[pl].announce.symbol;
+          this.currentPlayer = pl;
+          break;
+        case "Chelem":
+          this.currentPlayer = pl;
+          break;
+      }
+      this.state = STATE_PLAY;
+      break;
+    case 2:
+      // Deux joueurs ont annoncé, on regarde si ils se sont emballés l'un l'autre ou si ils sont trou ensemble
+      var playersType = notPass.map(function(p){return self.players[p].announce.type});
+      if (_.every(playersType, function(t){return t === "Emballage"}) || _.every(playersType, function(t){return t === "Trou"})) {
+
+        if (playersType[0] === "Emballage") this.game.trump = this.players[players[0]].announce.symbole;
+        else if (this.players[notPass[0]].announce.name === "Bouche-trou") this.currentPlayer = notPass[0];
+        else this.currentPlayer = notPass[1];
+
         this.state = STATE_PLAY;
         break;
-      case 2:
-        // Deux joueurs ont annoncé, on regarde si ils se sont emballés l'un l'autre ou si ils sont trou ensemble
-        var playersType = notPass.map(function(p){return self.players[p].announce.type});
-        if (_.every(playersType, function(t){return t === "Emballage"}) || _.every(playersType, function(t){return t === "Trou"})) {
+      }
+      // Sinon on break pas pour entrer dans le cas suivant
+    default:
+      // Dans tous les autres cas, on donne la parole à celui dont l'annonce est la plus faible
+      var self = this;
 
-          if (playersType[0] === "Emballage") this.game.trump = this.players[players[0]].announce.symbole;
-          else if (this.players[notPass[0]].announce.name === "Bouche-trou") this.currentPlayer = notPass[0];
-          else this.currentPlayer = notPass[1];
-
-          this.state = STATE_PLAY;
-          break;
-        }
-        // Sinon on break pas pour entrer dans le cas suivant
-      default:
-        // Dans tous les autres cas, on donne la parole à celui dont l'annonce est la plus faible
-        var self = this;
-
-        this.currentPlayer = Object.keys(this.players).filter(function(pl){
-          // On ne garde que ceux qui n'ont pas passé et qui ne sont pas muet
-          return self.players[pl].announce.name !== "Passer" && self.players[pl].announce.canTalk
-        }).map(function(pl){
-          // On ne garde que le nom de joueur (index 0), son annonce (index 1) et le symbole de l'annonce (ou le symbole le plus faible)
-          return [pl, self.players[pl].announce.name, _.isUndefined(self.players[pl].announce.symbol) ? cardsLib.symbols[3] : self.players[pl].announce.symbol]
-        }).sort(function(tpl1, tpl2){
-          // On trie par ordre croissant d'annonce (primaire) et par ordre croissant de puissance de symbole (secondaire, la décimale)
-          return Object.keys(ANNOUNCES).reverse().indexOf(tpl1[1]) + (cardsLib.symbols.reverse().indexOf(tpl1[2]) / 4) - Object.keys(ANNOUNCES).reverse().indexOf(tpl2[1]) + (cardsLib.symbols.reverse().indexOf(tpl2[2]) / 4)}
-        )[0][0]; // Pour le premier tulple, son pseudo
-    }
+      this.currentPlayer = Object.keys(this.players).filter(function(pl){
+        // On ne garde que ceux qui n'ont pas passé et qui ne sont pas muet
+        return self.players[pl].announce.name !== "Passer" && self.players[pl].announce.canTalk
+      }).map(function(pl){
+        // On ne garde que le nom de joueur (index 0), son annonce (index 1) et le symbole de l'annonce (ou le symbole le plus faible)
+        return [pl, self.players[pl].announce.name, _.isUndefined(self.players[pl].announce.symbol) ? cardsLib.symbols[3] : self.players[pl].announce.symbol]
+      }).sort(function(tpl1, tpl2){
+        // On trie par ordre croissant d'annonce (primaire) et par ordre croissant de puissance de symbole (secondaire, la décimale)
+        return Object.keys(ANNOUNCES).reverse().indexOf(tpl1[1]) + (cardsLib.symbols.reverse().indexOf(tpl1[2]) / 4) - Object.keys(ANNOUNCES).reverse().indexOf(tpl2[1]) + (cardsLib.symbols.reverse().indexOf(tpl2[2]) / 4)}
+      )[0][0]; // Pour le premier tulple, son pseudo
   }
 };
 
@@ -475,7 +474,7 @@ Whist.prototype.dealWithBids = function dealWithBids(message) {
 
               } else {
                 throw "On ne peut pas emballer plus faible que soit"
-
+              }
             } else {
               throw "L'emballage est impossible (pour 50k raisons possible)"
             }
