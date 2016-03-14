@@ -5,17 +5,16 @@ var names = ["Two","Three","Four","Five","Six","Seven","Heigh","Nine","Ten","Val
 
 // Create a deck with cards given or all cards
 var Cards = function Cards(cards) {
-  var self = this;
   if (typeof cards != "undefined") {
     this.cards = _.toArray(cards);
   } else {
     this.cards = [];
     for (var s = 0 in symbols) {
-      for (var n = 0 in values) {
+      for (var n = 0 in names) {
         this.cards.push({
           value: (+n)+2,
           symbol: symbols[s],
-          name: values[n],
+          name: names[n],
           toString: function toString() {
             var symbol = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
             return (this.value < 11 ? this.value : this.name[0]) + symbol[this.symbol];
@@ -61,9 +60,9 @@ Cards.prototype.add = function add(cards) {
 
 // Sort the cards by symbol and then by number
 Cards.prototype.sort = function sort() {
-  self.cards.sort(function(cardA, cardB) {
+  this.cards.sort(function(cardA, cardB) {
     if (cardA.symbol != cardB.symbol) {
-      return self.symbols.indexOf(cardA.symbol) - self.symbols.indexOf(cardB.symbol);
+      return symbols.indexOf(cardA.symbol) - symbols.indexOf(cardB.symbol);
     } else {
       return cardB.value - cardA.value;
     }
