@@ -184,7 +184,8 @@ Whist.prototype.newNormalGame = function newNormalGame(player) {
     this.players[pl].announce.wasSolo = undefined;
     this.players[pl].announce.myFriend = undefined;
     this.players[pl].announce.folds = [];
-    this.players[pl].announce.score = 0;
+    this.players[pl].score = 0;
+    this.players[pl].folds = [];
 
     // Distribue 13 cartes à chaque joueur et trie son jeu
     this.players[pl].cards = new Cards(cards.pull(13))
@@ -566,38 +567,56 @@ Whist.prototype.calculateTheScore = function calculateTheScore() {
       var folds = _.isUndefined(this.players[pl].announce.myFriend) ? this.players[pl].folds.length : this.players[pl].folds.length + this.players[this.players[pl].myFriend].folds.length;
       switch (ANNOUNCES[this.players[pl].announce.name].type) {
         case "Solo":
+          // Dans le cas d'un solo, le joueur doit au moins faire le nombre de pli annoncé mais jamais plus de 8 (il aurait du annoncer abondance)
           if (folds >= ANNOUNCES[this.players[pl].announce.name].folds && folds < 9) {
-            this.players[pl].
+            // Si le joueur réussi, il gagne ses points
+            this.players[pl].score += ANNOUNCES[this.players[pl].announce.name].success;
           } else {
-
+            // Sinon il en perd et ce sont les autres qui en gagnent
+            this.players[pl].score += ANNOUNCES[this.players[pl].announce.name].looseMe;
+            for (var opl of _.without(Object.keys(this.players), pl)) {
+              this.players[opl].score += ANNOUNCES[this.players[pl].announce.name].winOthers;
+            }
           }
           break;
+
+        case "Piccolo":
         case "Misère":
-          if (this.players[pl].announce.name === "Piccolo") {
-            if (folds == ANNOUNCES[this.players[pl].announce.name].folds) {
-
-            } else {
-
-            }
-          } else if (folds <= ANNOUNCES[this.players[pl].announce.name].folds) {
-
+          // Dans le cas d'une misère ou d'un picollo, le joueur doit faire exactement le nombre de pli demandé
+          if (folds == ANNOUNCES[this.players[pl].announce.name].folds) {
+            this.players[pl].score += ANNOUNCES[this.players[pl].announce.name].success;
           } else {
-
+            this.players[pl].score += ANNOUNCES[this.players[pl].announce.name].looseMe;
+            for (var opl of _.without(Object.keys(this.players), pl)) {
+              this.players[opl].score += ANNOUNCES[this.players[pl].announce.name].winOthers;
+            }
           }
           break;
         case "Emballage":
+          // Dans le cas d'un emballage, les joueurs doivent avoir fait au moins le nombre de pli annoncé. Chacun gagne ses points
           if (folds >= ANNOUNCES[this.players[pl].announce.name].folds) {
-
+            this.players[pl].score += ANNOUNCES[this.players[pl].announce.name].success;
+            this.players[this.players[pl].announce.myFriend].score += ANNOUNCES[this.players[pl].announce.name].success;
           } else {
-
+            this.players[pl].score += ANNOUNCES[this.players[pl].announce.name].looseMe;
+            this.players[this.players[pl].announce.myFriend].score += ANNOUNCES[this.players[pl].announce.name].looseMe;
+            for (var opl of _.difference(Object.keys(this.players), [pl, this.players[pl].announce.myFriend])) {
+              this.players[opl].score += ANNOUNCES[this.players[pl].announce.name].winOthers;
+            }
           }
           break;
 
         default:
+          // Pour abondance et chelem, le joueur doit au moins faire le nombre de pli annoncé
           if (folds >= ANNOUNCES[this.players[pl].announce.name].folds) {
-
+            // Si le joueur réussi, il gagne ses points
+            this.players[pl].score += ANNOUNCES[this.players[pl].announce.name].success;
           } else {
-
+            // Sinon il en perd et ce sont les autres qui en gagnent
+            this.players[pl].score += ANNOUNCES[this.players[pl].announce.name].looseMe;
+            for (var opl of _.without(Object.keys(this.players), pl)) {
+              this.players[opl].score += ANNOUNCES[this.players[pl].announce.name].winOthers;
+            }
           }
       }
       break;
