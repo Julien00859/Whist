@@ -17,7 +17,7 @@ var Cards = function Cards(cards) {
           name: names[n],
           toString: function toString() {
             var symbol = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
-            return (this.value < 11 ? this.value : this.name[0]) + symbol[this.symbol];
+            return symbols[this.symbol] + (this.value < 11 ? this.value : this.name[0]);
           }
         });
       }
@@ -120,7 +120,7 @@ var getCardsFromString = function getCardsFromString(str) {
       name: names[value],
       toString: function toString() {
         var symbols = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
-        return "" + (this.value < 11 ? this.value : this.name[0]) + symbols[this.symbol];
+        return symbols[this.symbol] + (this.value < 11 ? this.value : this.name[0]);
       }
     });
   }
