@@ -198,7 +198,7 @@ Whist.prototype.newNormalGame = function newNormalGame(player) {
     this.players[pl].cards.sort()
 
     // Vérification pour voir si il a 3 as (Trou)
-    if (this.players[pl].cards.cards.filter(function(c){c.name === "As"}).length === 3) {
+    if (this.players[pl].cards.cards.filter(function(c){return c.name === "As"}).length === 3) {
       this.players[pl].announce.name = "Trou"; // On force son annonce à être trou
       this.state = STATE_ANNOUNCE_AFTER_HOLE; // Gestion spécial des annonces
       var trou = pl;
@@ -576,7 +576,7 @@ Whist.prototype.dealWithTurns = function dealWithTurns() {
 
   // Si ce n'est pas la fin du tour
   } else {
-    this.currentPlayer = this.nextPlayer(this);
+    this.currentPlayer = this.nextPlayer();
   }
 };
 
