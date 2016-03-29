@@ -1,12 +1,12 @@
 const _ = require("underscore");
 const cardsLib = require("./cards.js");
 
-const STATE_ANNOUNCE = 0; // Le premier tour de table pour les annonces
-const STATE_ANNOUNCE_AFTER_HOLE = 1; // Le premier tour de table pour les annonces sans celles qui sont plus fables que le trou
-const STATE_BIDS = 2; // Les enchères
-const STATE_RETRIEVE_CART = 3; // Si quelqu'un a annoncé petite misière et que tout le monde doit retirer une carte de son jeu
-const STATE_PLAY = 4; // Le déroulement de la partie
-const STATE_END = 5; // Lorsque le jeu est fini
+const STATE_ANNOUNCE = 1; // Le premier tour de table pour les annonces
+const STATE_ANNOUNCE_AFTER_HOLE = 2; // Le premier tour de table pour les annonces sans celles qui sont plus fables que le trou
+const STATE_BIDS = 3; // Les enchères
+const STATE_RETRIEVE_CART = 4; // Si quelqu'un a annoncé petite misière et que tout le monde doit retirer une carte de son jeu
+const STATE_PLAY = 5; // Le déroulement de la partie
+const STATE_END = 6; // Lorsque le jeu est fini
 
 const ANNOUNCES = {
   "Grand chelem": {
@@ -198,7 +198,7 @@ Whist.prototype.newNormalGame = function newNormalGame(player) {
     this.players[pl].cards.sort()
 
     // Vérification pour voir si il a 3 as (Trou)
-    if (_.any(this.players[pl].cards.cards.filter(function(c){return c.name === "As"})).length === 3) {
+    if (this.players[pl].cards.cards.filter(function(c){c.name === "As"}).length === 3) {
       this.players[pl].announce.name = "Trou"; // On force son annonce à être trou
       this.state = STATE_ANNOUNCE_AFTER_HOLE; // Gestion spécial des annonces
       var trou = pl;
@@ -209,7 +209,8 @@ Whist.prototype.newNormalGame = function newNormalGame(player) {
     // Il y a eu trou
     for (var pl of _.without(players, trou)) {
       // On va chercher celui qui a le dernier As
-      if (_.any(this.players[pl].cards.cards, function(card) {return this.players[pl].cards.cards[card].name === "As"})) {
+      var self = this;
+      if (_.any(this.players[pl].cards.cards, function(card) {return self.players[pl].cards.cards[card].name === "As"})) {
         this.players[pl].announce.name = "Bouche-trou"; // On force son annonce à être Bouche-trou
         this.players[trou].announce.myFriend = pl;
         this.players[pl].announce.myFriend = trou;
@@ -235,13 +236,13 @@ Whist.prototype.playTurn = function playTurn(player, message) {
     switch (this.STATE) {
       case STATE_ANNOUNCE:
         // On récupère la liste des type d'annonce sans le Trou
-        var availableAnnounces = _.without(_.uniq(Object.keys(ANNOUNCES).map(function(ann){return ann.type}), "Trou"));
+        var availableAnnounces = _.without(_.uniq(Object.keys(ANNOUNCES).map(function(ann){return ANNOUNCES[ann].type})), "Trou");
         if (player === Object.keys(players)[0]) availableAnnounces.push("Premier"); // Le premier pourra annoncer Premier
         // Pas de break
 
       case STATE_ANNOUNCE_AFTER_HOLE:
         // Récupère la liste d'annonce sans le Solo et l'Emballage (qui sont trop faibles pour battre le trou)
-        if (_.isUndefined(availableAnnounces)) var availableAnnounces = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ann.type !== "Solo" && ann.type !== "Emballage" && ann.type !== "Piccolo"}));
+        if (_.isUndefined(availableAnnounces)) var availableAnnounces = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ANNOUNCES[ann].type !== "Solo" && ANNOUNCES[ann].type !== "Emballage" && ANNOUNCES[ann].type !== "Piccolo"}));
 
         if ("announce" in message) {
           if (_.contains(availableAnnounces, message.announce)) {
@@ -549,7 +550,7 @@ Whist.prototype.dealWithTurns = function dealWithTurns() {
     for (var card of this.game.folds[this.game.turn].cards) {
       if (card.symbol == sym) {
         // Si le joueur a suivi, sa carte compte tel quelle
-        values.push(card.value)
+        values.push(card.value);
       } else if (card.symbol == this.game.trump) {
         // Si il coupe, sa carte a une valeur plus haute que si il avait suivi
         values.push(card.value + 13);
@@ -575,7 +576,7 @@ Whist.prototype.dealWithTurns = function dealWithTurns() {
 
   // Si ce n'est pas la fin du tour
   } else {
-    this.currentPlayer = nextPlayer.call(this);
+    this.currentPlayer = this.nextPlayer(this);
   }
 };
 
@@ -641,5 +642,27 @@ Whist.prototype.calculateTheScore = function calculateTheScore() {
     }
   }
 };
+
+Whist.prototype.getAvailableAnnounces = function getAvailableAnnounces() {
+  a = [];
+  switch (this.state) {
+    case STATE_ANNOUNCE:
+      a = _.without(_.uniq(Object.keys(ANNOUNCES).map(function(ann){return ANNOUNCES[ann].type})), "Trou");
+      if (this.currentPlayer == Object.keys(this.players)[0]) {
+        a.push("Premier");
+      }
+      break;
+
+    case STATE_ANNOUNCE_AFTER_HOLE:
+      a = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ANNOUNCES[ann].type !== "Solo" && ANNOUNCES[ann].type !== "Emballage" && ANNOUNCES[ann].type !== "Piccolo"}));
+      break;
+
+    case STATE_BIDS:
+      a = ["Emballer", "Encherir", "Passer"];
+      break;
+
+  }
+  return a;
+}
 
 module.exports.Whist = Whist;

@@ -1,5 +1,3 @@
-const _ = require("underscore");
-
 var symbols = ["Heart","Diamond","Club","Spade"];
 var names = ["Two","Three","Four","Five","Six","Seven","Heigh","Nine","Ten","Valet","Queen","King","As"];
 
@@ -124,10 +122,5 @@ var getCardsFromString = function getCardsFromString(str) {
       }
     });
   }
-  return cards;
+  return new Cards(cards);
 }
-
-module.exports.Cards = Cards;
-module.exports.getCardsFromString = getCardsFromString;
-module.exports.symbols = symbols;
-module.exports.names = names;
