@@ -57,8 +57,8 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
   this.sendAnnounce = function sendAnnounce() {
     if (_.contains($scope.ctrl.availableAnnounces, $scope.ctrl.selectedAnnounce)) {
       if ($scope.ctrl.needSymbolForm($scope.ctrl.selectedAnnounce) && _.contains($scope.ctrl.symbols, $scope.ctrl.selectedSymbol))
-        $scope.ctrl.socket.emit("announce", $scope.ctrl.selectedAnnounce, $scope.ctrl.selectedSymbol);
-      else $scope.ctrl.socket.emit("announce", $scope.ctrl.selectedAnnounce);
+        $scope.ctrl.socket.emit("game announce", $scope.ctrl.selectedAnnounce, $scope.ctrl.selectedSymbol);
+      else $scope.ctrl.socket.emit("game announce", $scope.ctrl.selectedAnnounce);
     }
   }
 
@@ -97,7 +97,7 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
 
   this.newNormalGame = function newNormalGame(rawMsg) {
     if ($scope.ctrl.me.nicknameValidated) {
-      $scope.ctrl.me.cards = getCardsFromString(rawMsg.cards);
+      $scope.ctrl.me.cards = new Cards(getCardsFromString(rawMsg.cards));
       $scope.ctrl.game.players = rawMsg.players;
 
       for (var i in $scope.ctrl.game.players) {
@@ -135,4 +135,6 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
     }
     $scope.$apply();
   });
+
+  this.socket.on("game announce", function(ann, sym){console.log(ann, sym)});
 });

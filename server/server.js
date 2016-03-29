@@ -84,26 +84,28 @@ socketio.on("connection", function(socket){
     }
   });
 
-  socket.on("announce", function(announce, symbol){
-    var nick = room.sockets[socket.client.id]
-    var game = room.tables[room.nicknames[nick].gameId]
-    game.playTurn(nick, {announce: announce, announceSymbol: symbol});
-    // try {
-    //   game.playTurn(nick, {announce: announce, announceSymbol: symbol});
-    // } catch (err) {
-    //   console.log("[" + gameId + "] " + err)
-    //   socket.emit("myerror", {code: 6, msg: err});
-    //   return;
-    // }
-    console.log("[" + game.id + "] " + nick + " announced " + announce + (symbol ? " " + symbol : ""));
+  socket.on("game announce", function(argAnnounce, argSymbol){
+    var nick = room.sockets[socket.client.id];
+    var gameId = room.nicknames[nick].gameId;
+    var game = room.tables[gameId];
+
+    console.log(nick, argAnnounce, argSymbol)
+    try {
+      game.playTurn(nick, {announce: argAnnounce, announceSymbol: argSymbol});
+    } catch (err) {
+      console.log("[" + gameId + "] " + err)
+      socket.emit("myerror", {code: 6, msg: err.message});
+      return;
+    }
+    console.log("[" + game.id + "] " + nick + " announced " + argAnnounce + (argSymbol ? " " + argSymbol : ""));
     _.each(Object.keys(game.players), function(pl){
       console.log("[" + game.id + "] Emitting to " + pl);
-      room.nicknames[pl].socket.emit("announce", announce, symbol);
+      room.nicknames[pl].socket.emit("game announce", argAnnounce, argSymbol);
       room.nicknames[pl].socket.emit("next turn", {state: game.state, availableAnnounces: game.getAvailableAnnounces(), currentPlayer: game.currentPlayer});
     });
     console.log("[" + game.id + "] Current player: " + game.currentPlayer);
-  })
-1
+  });
+
   socket.on('disconnect', function(){
     kick(socket.client.id);
   });

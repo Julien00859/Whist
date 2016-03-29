@@ -3,6 +3,21 @@ const _ = require("underscore");
 var symbols = ["Heart","Diamond","Club","Spade"];
 var names = ["Two","Three","Four","Five","Six","Seven","Heigh","Nine","Ten","Valet","Queen","King","As"];
 
+var Card = function Card(symbol, name) {
+  if (_.contains(symbols, symbol) && _.contains(names, name)) {
+    this.value = names.indexOf(name) + 2;
+    this.name = name;
+    this.symbol = symbol;
+  } else {
+    throw "Unknown card " + symbol + " " + name;
+  }
+}
+Card.prototype.toString = function toString() {
+  var symbols = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
+  return symbols[this.symbol] + (this.value < 11 ? this.value : this.name[0]);
+}
+
+
 // Create a deck with cards given or all cards
 var Cards = function Cards(cards) {
   if (typeof cards != "undefined") {
@@ -11,15 +26,7 @@ var Cards = function Cards(cards) {
     this.cards = [];
     for (var s in symbols) {
       for (var n in names) {
-        this.cards.push({
-          value: (+n)+2,
-          symbol: symbols[s],
-          name: names[n],
-          toString: function toString() {
-            var symbols = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
-            return symbols[this.symbol] + (this.value < 11 ? this.value : this.name[0]);
-          }
-        });
+        this.cards.push(new Card(symbols[s], names[n]));
       }
     }
   }
@@ -40,11 +47,8 @@ Cards.prototype.pull = function pull(i, n) {
 
 // Get the given card from the deck
 Cards.prototype.get = function get(card) {
-  if (_.contains(this.cards, card)) {
-    return this.pull(this.cards.indexOf(card), 1)[0];
-  } else {
-    throw "CardNotFound";
-  }
+  for (var c in this.cards) if (_.isMatch(this.cards[c], card)) return this.cards.splice(c, 1)[0];
+  throw "CardNotFound";
 }
 
   // Append one or many cards at the end
@@ -97,37 +101,24 @@ Cards.prototype.toString = function toString() {
 }
 
 Cards.prototype.contains = function contains(card) {
-  return _.contains(this.cards, card)
+  return _.any(this.cards, function(c){return _.isMatch(c, card)});
 }
 
 var getCardsFromString = function getCardsFromString(str) {
   var cards = [];
   var symbols = {"♥": "Heart", "♠": "Spade", "♦": "Diamond", "♣": "Club"};
   var names = {"2": "Two", "3": "Three", "4": "Four", "5": "Five", "6": "Six", "7": "Seven", "8": "Heigh", "9": "Nine", "10": "Ten","V": "Valet", "Q": "Queen", "K": "King","A": "As"};
+  var value;
   str = str.split(" ");
 
   for (var i in str) {
-    if (str[i].length === 2) {
-      var value = str[i][1]
-      var symbol = str[i][0]
-    } else {
-      var value = str[i].slice(1, 3);
-      var symbol = str[i][0]
-    }
-    cards.push({
-      value: parseInt(Object.keys(names).indexOf(value) + 2),
-      symbol: symbols[symbol],
-      name: names[value],
-      toString: function toString() {
-        var symbols = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
-        return symbols[this.symbol] + (this.value < 11 ? this.value : this.name[0]);
-      }
-    });
+    cards.push(new Card(symbols[str[i][0]], names[str[i].slice(1)]));
   }
-  return cards;
+  return cards.length > 1 ? cards : cards[0];
 }
 
 module.exports.Cards = Cards;
+module.exports.Card = Card;
 module.exports.getCardsFromString = getCardsFromString;
 module.exports.symbols = symbols;
 module.exports.names = names;

@@ -155,7 +155,7 @@ var Whist = function Whist(players) {
       }
     }
   } else {
-    throw "InvalidArguments We need 4 players name";
+    throw new Error("La partie ne peut pas se lancer sans avoir 4 joueurs");
   }
 
   this.game = {
@@ -180,9 +180,16 @@ Whist.prototype.reset = function reset() {
     this.players[pl].announce.canTalk = true;
     this.players[pl].announce.wasSolo = undefined;
     this.players[pl].announce.myFriend = undefined;
-    this.players[pl].announce.folds = [];
-    this.players[pl].folds = [];
+    this.players[pl].announce.folds = undefined;
+    this.players[pl].folds = undefined;
+    this.players[pl].cards = undefined;
   }
+
+  // Reset de l'état du jeu
+  this.state = undefined;
+
+  // Reset du joueur courant
+  this.currentPlayer = undefined;
 }
 
 // Débute une nouvelle partie en distribuant les cartes
@@ -196,28 +203,25 @@ Whist.prototype.newNormalGame = function newNormalGame(player) {
     // Distribue 13 cartes à chaque joueur et trie son jeu
     this.players[pl].cards = new cardsLib.Cards(cards.pull(13))
     this.players[pl].cards.sort()
-
-    // Vérification pour voir si il a 3 as (Trou)
-    if (this.players[pl].cards.cards.filter(function(c){return c.name === "As"}).length === 3) {
-      this.players[pl].announce.name = "Trou"; // On force son annonce à être trou
-      this.state = STATE_ANNOUNCE_AFTER_HOLE; // Gestion spécial des annonces
-      var trou = pl;
-    }
   }
 
-  if (this.state === STATE_ANNOUNCE_AFTER_HOLE) {
-    // Il y a eu trou
-    for (var pl of _.without(players, trou)) {
-      // On va chercher celui qui a le dernier As
+  // Si il y a un trou, on récupère son nom
+  var hole = this.checkForHole();
+  if (!_.isUndefined(hole)) {
+    this.players[hole].announce.name = "Trou"; // On force son annonce à être trou
+    this.state = STATE_ANNOUNCE_AFTER_HOLE; // Gestion spécial des annonces
+
+    // On va chercher celui qui a le dernier As
+    for (var pl of _.without(Object.keys(this.players), hole)) {
       var self = this;
-      if (_.any(this.players[pl].cards.cards, function(card) {return self.players[pl].cards.cards[card].name === "As"})) {
+      if (this.isDick(pl)) {
         this.players[pl].announce.name = "Bouche-trou"; // On force son annonce à être Bouche-trou
-        this.players[trou].announce.myFriend = pl;
-        this.players[pl].announce.myFriend = trou;
+        this.players[hole].announce.myFriend = pl;
+        this.players[pl].announce.myFriend = hole;
       }
     }
     // On trouve le premier qui n'a pas parlé pour lui donner la parole
-    var pl = players[0];
+    var pl = Object.keys(this.players)[0];
     while (!_.isUndefined(this.players[pl].announce.name)) pl = this.nextPlayer(pl);
     this.currentPlayer = pl;
   } else {
@@ -231,63 +235,72 @@ Whist.prototype.newNormalGame = function newNormalGame(player) {
 Whist.prototype.playTurn = function playTurn(player, message) {
   // Uniquement le joueur courant peut parler et jouer
   if (player === this.currentPlayer) {
+    if (arguments.length === 2) {
+      if (_.isObject(message)) {
+        // On selectionne l'état actuel du jeu
+        switch (this.state) {
+          case STATE_ANNOUNCE:
+            // On récupère la liste des type d'annonce sans le Trou
+            var availableAnnounces = _.without(_.uniq(Object.keys(ANNOUNCES).map(function(ann){return ANNOUNCES[ann].type})), "Trou");
+            if (player === Object.keys(this.players)[0] && _.isUndefined(this.players[player].announce.name)) availableAnnounces.push("Premier"); // Le premier pourra annoncer Premier
+            // Pas de break
 
-    // On selectionne l'état actuel du jeu
-    switch (this.STATE) {
-      case STATE_ANNOUNCE:
-        // On récupère la liste des type d'annonce sans le Trou
-        var availableAnnounces = _.without(_.uniq(Object.keys(ANNOUNCES).map(function(ann){return ANNOUNCES[ann].type})), "Trou");
-        if (player === Object.keys(players)[0]) availableAnnounces.push("Premier"); // Le premier pourra annoncer Premier
-        // Pas de break
+          case STATE_ANNOUNCE_AFTER_HOLE:
+            // Récupère la liste d'annonce sans le Solo et l'Emballage (qui sont trop faibles pour battre le trou)
+            if (_.isUndefined(availableAnnounces)) var availableAnnounces = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ANNOUNCES[ann].type !== "Solo" && ANNOUNCES[ann].type !== "Emballage" && ANNOUNCES[ann].type !== "Piccolo"}));
 
-      case STATE_ANNOUNCE_AFTER_HOLE:
-        // Récupère la liste d'annonce sans le Solo et l'Emballage (qui sont trop faibles pour battre le trou)
-        if (_.isUndefined(availableAnnounces)) var availableAnnounces = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ANNOUNCES[ann].type !== "Solo" && ANNOUNCES[ann].type !== "Emballage" && ANNOUNCES[ann].type !== "Piccolo"}));
+            if ("announce" in message) {
+              if (_.contains(availableAnnounces, message.announce)) {
+                this.dealWithAnnounce(message);
+                this.announceGetNextPlayerAndMaybeChangeState();
 
-        if ("announce" in message) {
-          if (_.contains(availableAnnounces, message.announce)) {
-            this.dealWithAnnounce(message);
-            this.announceGetNextPlayerAndMaybeChangeState();
+              } else {
+                throw new Error("L'annonce n'existe pas");
+              }
 
-          } else {
-            throw "L'annonce n'existe pas"
-          }
+            } else {
+              throw new Error("La clef 'announce' est absente du message");
+            }
+            break; // End STATE_ANNOUNCE
 
-        } else {
-          throw "La clef 'announce' est absente du message"
+          case STATE_BIDS:
+            // On peut emballer plus fort, enchérir, passer
+            if ("bid" in message) {
+              if (_.contains(["Emballer", "Encherir", "Passer"], message.bid)) {
+                this.dealWithBids(message);
+                this.bidsGetNextPlayerAndMaybeChangeState();
+              } else {
+                throw new Error("L'enchère n'existe pas");
+              }
+
+            } else {
+              throw new Error("La clef 'bid' est absente du message");
+            }
+            break;
+
+          case STATE_PLAY:
+            if ("card" in message) {
+              this.dealWithCardPlayed(Cards.getCardsFromString(message.card)[0]);
+              this.dealWithTurns();
+            } else {
+              throw new Error("La clef 'card' est absente du message");
+            }
+
+          case STATE_END:
+            break;
+
+          default:
+            throw new Error("La partie n'est pas initialisé ou est dans un état inconnu.");
+
         }
-        break; // End STATE_ANNOUNCE
-
-      case STATE_BIDS:
-        // On peut emballer plus fort, enchérir, passer
-        if ("bid" in message) {
-          if (_.contains(["Emballer", "Encherir", "Passer"], message.bid)) {
-            this.dealWithBids(message);
-            this.bidsGetNextPlayerAndMaybeChangeState();
-          } else {
-            throw "L'enchère n'existe pas"
-          }
-
-        } else {
-          throw "La clef 'bid' est absente du message"
-        }
-        break;
-
-      case STATE_PLAY:
-        if ("card" in message) {
-          this.dealWithCardPlayed(Cards.getCardsFromString(message.card)[0]);
-          this.dealWithTurns();
-        } else {
-          throw "La clef 'card' est absente du message"
-        }
-
-      case STATE_END:
-        break;
-
+      } else {
+        throw new Error("Le second argument doit être un objet")
+      }
+    } else {
+      throw new Error("Il doit y avoir deux arguments")
     }
-
   } else {
-    throw "Ce n'est pas au tour du joueur donné";
+    throw new Error("Ce n'est pas au tour du joueur donné");
   }
 }
 
@@ -318,7 +331,7 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(message) {
                   this.players[this.currentPlayer].announce.symbol = message.announceSymbol;
 
                 } else {
-                  throw "Le symbole avait déjà été annoncé";
+                  throw new Error("Le symbole avait déjà été annoncé");
                 }
                 break;
 
@@ -338,7 +351,7 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(message) {
                   this.players[this.currentPlayer].announce.myFriend = this.currentPlayer;
 
                 } else {
-                  throw "Le symbole n'avait pas encore été annoncé";
+                  throw new Error("Le symbole n'avait pas encore été annoncé");
                 }
 
               case "Abondance":
@@ -349,20 +362,20 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(message) {
               case "Trou":
                 // Pour garder l'annonce, que ce soit trou ou bouche-trou
                 if (this.players[this.currentPlayer].announce.name !== "Trou" && this.players[this.currentPlayer].announce.name !== "Bouche-trou") {
-                  throw "On ne peut pas annoncer Trou, on l'est ou on ne l'est pas";
+                  throw new Error("On ne peut pas annoncer Trou, on l'est ou on ne l'est pas");
                 }
                 break;
             }
           } else {
-            throw "Le joueur doit posséder au moins une carte du symbole annoncé";
+            throw new Error("Le joueur doit posséder au moins une carte du symbole annoncé");
           }
 
         } else {
-          throw "Le symbole n'existe pas";
+          throw new Error("Le symbole n'existe pas");
         }
 
       } else {
-        throw "La cle 'announceSymbol' est absente du message";
+        throw new Error("La cle 'announceSymbol' est absente du message");
       }
       break;
 
@@ -389,7 +402,7 @@ Whist.prototype.announceGetNextPlayerAndMaybeChangeState = function announceGetN
     // Il reste des joueurs qui n'ont pas annoncé, on leur donne la parole un à un
     do {
       this.currentPlayer = this.nextPlayer();
-    } while (!_.isUndefined(this.players[this.currentPlayer].announce.name) || this.players[this.currentPlayer].announce.name === "Premier");
+    } while (!_.isUndefined(this.players[this.currentPlayer].announce.name) && !this.players[this.currentPlayer].announce.name === "Premier");
 
   } else {
     this.state = STATE_BIDS;
@@ -399,6 +412,7 @@ Whist.prototype.announceGetNextPlayerAndMaybeChangeState = function announceGetN
 
 Whist.prototype.bidsGetNextPlayerAndMaybeChangeState = function bidsGetNextPlayerAndMaybeChangeState() {
   // On compte le nombre de personnes qui n'ont pas passé
+  var self = this;
   var notPass = Object.keys(this.players).filter(function(p){return self.players[p].announce.name !== "Passer"});
   switch (4 - notPass) {
     case 4:
@@ -493,27 +507,27 @@ Whist.prototype.dealWithBids = function dealWithBids(message) {
                   this.players[this.currentPlayer].announce.myFriend = this.currentPlayer;
 
               } else {
-                throw "On ne peut pas emballer plus faible que soit"
+                throw new Error("On ne peut pas emballer plus faible que soit");
               }
             } else {
-              throw "L'emballage est impossible (pour 50k raisons possible)"
+              throw new Error("L'emballage est impossible (pour 50k raisons possible)");
             }
           } else {
-            throw "Le joueur ne possède aucune carte de ce type"
+            throw new Error("Le joueur ne possède aucune carte de ce type");
           }
 
         } else {
-          throw "Le symbole n'est pas valide"
+          throw new Error("Le symbole n'est pas valide");
         }
 
       } else {
-        throw "La clef 'symbol' n'est pas dans le message"
+        throw new Error("La clef 'symbol' n'est pas dans le message");
       }
       break;
 
     case "Encherir":
       if (!(_.isUndefined(ANNOUNCES[this.players[this.currentPlayer].announce.name].next))) this.players[this.currentPlayer].announce.name = ANNOUNCES[this.players[this.currentPlayer].announce.name].next
-      else throw "Impossible d'enchérir plus haut";
+      else throw new Error("Impossible d'enchérir plus haut");
       break;
 
   }
@@ -534,10 +548,10 @@ Whist.prototype.dealWithCardPlayed = function dealWithCardPlayed(card) {
     } else if (_.any(this.players[this.currentPlayer].cards.cards,function(c) {return this.players[this.currentPlayer].cards.cards[c].symbol == this.game.folds[this.game.turn].cards[0].symbol}) == false) {
         this.game.folds[this.game.turn].add(this.players[this.currentPlayer].cards.get(card));
     } else {
-      throw "Le joueur doit suivre";
+      throw new Error("Le joueur doit suivre");
     }
   } else {
-    throw "Le joueur doit posséder la carte";
+    throw new Error("Le joueur doit posséder la carte");
   }
 };
 
@@ -648,7 +662,7 @@ Whist.prototype.getAvailableAnnounces = function getAvailableAnnounces() {
   switch (this.state) {
     case STATE_ANNOUNCE:
       a = _.without(_.uniq(Object.keys(ANNOUNCES).map(function(ann){return ANNOUNCES[ann].type})), "Trou");
-      if (this.currentPlayer == Object.keys(this.players)[0]) {
+      if (this.currentPlayer === Object.keys(this.players)[0] && _.isUndefined(this.players[this.currentPlayer].announce.name)) {
         a.push("Premier");
       }
       break;
@@ -663,6 +677,18 @@ Whist.prototype.getAvailableAnnounces = function getAvailableAnnounces() {
 
   }
   return a;
+}
+
+Whist.prototype.checkForHole = function checkForHole() {
+  for (var pl in this.players) {
+    if (this.players[pl].cards.cards.filter(function(c){return c.name === "As"}).length === 3) return pl;
+  }
+  return undefined;
+}
+
+Whist.prototype.isDick = function isDick(pl) {
+  var self = this;
+  return _.any(self.players[pl].cards.cards, function(card) {return card.name === "As"})
 }
 
 module.exports.Whist = Whist;
