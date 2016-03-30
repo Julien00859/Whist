@@ -15,6 +15,14 @@ Card.prototype.toString = function toString() {
   return symbols[this.symbol] + (this.value < 11 ? this.value : this.name[0]);
 }
 
+var HiddenCard = function HiddenCard() {
+  this.value = 0;
+  this.name = "Hidden";
+  this.symbol = "Hidden";
+}
+HiddenCard.prototype.toString = function toString() {
+  return "??";
+}
 
 // Create a deck with cards given or all cards
 var Cards = function Cards(cards) {
@@ -115,5 +123,5 @@ var getCardsFromString = function getCardsFromString(str) {
   for (var i in str) {
     cards.push(new Card(symbols[str[i][0]], names[str[i].slice(1)]));
   }
-  return cards;
+  return cards.length > 1 ? cards : cards[0];
 }

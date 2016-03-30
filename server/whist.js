@@ -46,12 +46,12 @@ const ANNOUNCES = {
     type: "Misère",
     next: "Grande misère étalée"
   },
-  "Bouche-trou": {
+  "Trou": {
     success: 16, looseMe: 0, winOthers: 16,
     folds: 9,
     type: "Trou"
   },
-  "Trou": {
+  "Bouche-trou": {
     success: 16, looseMe: 0, winOthers: 16,
     folds: 9,
     type: "Trou"
@@ -247,7 +247,7 @@ Whist.prototype.playTurn = function playTurn(player, message) {
 
           case STATE_ANNOUNCE_AFTER_HOLE:
             // Récupère la liste d'annonce sans le Solo et l'Emballage (qui sont trop faibles pour battre le trou)
-            if (_.isUndefined(availableAnnounces)) var availableAnnounces = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ANNOUNCES[ann].type !== "Solo" && ANNOUNCES[ann].type !== "Emballage" && ANNOUNCES[ann].type !== "Piccolo"}));
+            if (_.isUndefined(availableAnnounces)) var availableAnnounces = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ANNOUNCES[ann].type !== "Solo" && ANNOUNCES[ann].type !== "Emballage" && ANNOUNCES[ann].type !== "Piccolo" && ann != "Petite misère"}));
 
             if ("announce" in message) {
               if (_.contains(availableAnnounces, message.announce)) {
@@ -280,7 +280,7 @@ Whist.prototype.playTurn = function playTurn(player, message) {
 
           case STATE_PLAY:
             if ("card" in message) {
-              this.dealWithCardPlayed(Cards.getCardsFromString(message.card)[0]);
+              this.dealWithCardPlayed(Cards.getCardsFromString(message.card));
               this.dealWithTurns();
             } else {
               throw new Error("La clef 'card' est absente du message");
@@ -348,11 +348,12 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(message) {
                   this.players[others[0]].announce.name = "Emballage 8";
                   this.players[others[0]].announce.canTalk = false;
                   this.players[others[0]].announce.wasSolo = true;
-                  this.players[this.currentPlayer].announce.myFriend = this.currentPlayer;
+                  this.players[others[0]].announce.myFriend = this.currentPlayer;
 
                 } else {
                   throw new Error("Le symbole n'avait pas encore été annoncé");
                 }
+                break;
 
               case "Abondance":
                 this.players[this.currentPlayer].announce.name = "Abondance 9";
@@ -414,7 +415,7 @@ Whist.prototype.bidsGetNextPlayerAndMaybeChangeState = function bidsGetNextPlaye
   // On compte le nombre de personnes qui n'ont pas passé
   var self = this;
   var notPass = Object.keys(this.players).filter(function(p){return self.players[p].announce.name !== "Passer"});
-  switch (4 - notPass) {
+  switch (4 - notPass.length) {
     case 4:
       // Tout le monde a passé, on arrête
       this.state = STATE_END;
@@ -445,7 +446,7 @@ Whist.prototype.bidsGetNextPlayerAndMaybeChangeState = function bidsGetNextPlaye
       var playersType = notPass.map(function(p){return self.players[p].announce.type});
       if (_.every(playersType, function(t){return t === "Emballage"}) || _.every(playersType, function(t){return t === "Trou"})) {
 
-        if (playersType[0] === "Emballage") this.game.trump = this.players[players[0]].announce.symbole;
+        if (playersType[0] === "Emballage") this.game.trump = this.players[notPass[0]].announce.symbole;
         else if (this.players[notPass[0]].announce.name === "Bouche-trou") this.currentPlayer = notPass[0];
         else this.currentPlayer = notPass[1];
 
@@ -456,6 +457,7 @@ Whist.prototype.bidsGetNextPlayerAndMaybeChangeState = function bidsGetNextPlaye
     default:
       // Dans tous les autres cas, on donne la parole à celui dont l'annonce est la plus faible
       var self = this;
+      // Cette ligne de code fait 589 caractères et fonctionne très bien, tu y touches, je te tue.
       this.currentPlayer = Object.keys(this.players).filter(function(pl){
         // On ne garde que ceux qui n'ont pas passé et qui ne sont pas muet
         return self.players[pl].announce.name !== "Passer" && self.players[pl].announce.canTalk
@@ -464,8 +466,8 @@ Whist.prototype.bidsGetNextPlayerAndMaybeChangeState = function bidsGetNextPlaye
         return [pl, self.players[pl].announce.name, _.isUndefined(self.players[pl].announce.symbol) ? cardsLib.symbols[3] : self.players[pl].announce.symbol]
       }).sort(function(tpl1, tpl2){
         // On trie par ordre croissant d'annonce (primaire) et par ordre croissant de puissance de symbole (secondaire, la décimale)
-        return Object.keys(ANNOUNCES).reverse().indexOf(tpl1[1]) + (cardsLib.symbols.reverse().indexOf(tpl1[2]) / 4) - Object.keys(ANNOUNCES).reverse().indexOf(tpl2[1]) + (cardsLib.symbols.reverse().indexOf(tpl2[2]) / 4)}
-      )[0][0]; // Pour le premier tulple, son pseudo
+        return Object.keys(ANNOUNCES).reverse().indexOf(tpl1[1]) + (cardsLib.symbols.slice().reverse().indexOf(tpl1[2]) / 4) - Object.keys(ANNOUNCES).reverse().indexOf(tpl2[1]) + (cardsLib.symbols.slice().reverse().indexOf(tpl2[2]) / 4)}
+      )[0][0]; // Pour le premier tuple, son pseudo
   }
 };
 
@@ -473,13 +475,13 @@ Whist.prototype.dealWithBids = function dealWithBids(message) {
   switch (message.bid) {
     case "Passer":
       // Si c'est un emballage qui passe, qu'il est au moins enchéri deux fois et qu'il était celui qui a emballé, alors il "Passe la main"
-      if (ANNOUNCES[this.players[this.currentPlayer].announce.name].type == "Emballage" && !this.players[this.currentPlayer].announce.wasSolo && Object.keys(ANNOUNCES).reverse().indexOf(this.players[this.currentPlayer].announce.name) > Object.keys(ANNOUNCES).reverse().indexOf("Emballage 10")) {
+      if (ANNOUNCES[this.players[this.currentPlayer].announce.name].type == "Emballage" && !this.players[this.currentPlayer].announce.wasSolo && Object.keys(ANNOUNCES).indexOf(this.players[this.currentPlayer].announce.name) <= Object.keys(ANNOUNCES).indexOf("Emballage 10")) {
         this.players[this.currentPlayer].announce.canTalk = false;
         this.players[this.players[this.currentPlayer].announce.myFriend].canTalk = true;
 
       // Sinon on s'écrase
       } else {
-        if (!(_.isUndefined(this.players[this.currentPlayer].announce.myFriend))) this.players[this.players[this.currentPlayer].announce.myFriend].announce.name = "Passer"
+        if (!_.isUndefined(this.players[this.currentPlayer].announce.myFriend)) this.players[this.players[this.currentPlayer].announce.myFriend].announce.name = "Passer"
         this.players[this.currentPlayer].announce.name = "Passer";
       }
       break;
@@ -504,7 +506,7 @@ Whist.prototype.dealWithBids = function dealWithBids(message) {
                   this.players[others[0]].announce.name = "Emballage 8";
                   this.players[others[0]].announce.canTalk = false;
                   this.players[others[0]].announce.wasSolo = true;
-                  this.players[this.currentPlayer].announce.myFriend = this.currentPlayer;
+                  this.players[others[0]].announce.myFriend = this.currentPlayer;
 
               } else {
                 throw new Error("On ne peut pas emballer plus faible que soit");
@@ -526,10 +528,13 @@ Whist.prototype.dealWithBids = function dealWithBids(message) {
       break;
 
     case "Encherir":
-      if (!(_.isUndefined(ANNOUNCES[this.players[this.currentPlayer].announce.name].next))) this.players[this.currentPlayer].announce.name = ANNOUNCES[this.players[this.currentPlayer].announce.name].next
+      if (!(_.isUndefined(ANNOUNCES[this.players[this.currentPlayer].announce.name].next))) {
+        this.players[this.currentPlayer].announce.name = ANNOUNCES[this.players[this.currentPlayer].announce.name].next;
+        var theFriend = this.players[this.currentPlayer].announce.myFriend;
+        if (!_.isUndefined(theFriend)) this.players[theFriend].announce.name = ANNOUNCES[this.players[theFriend].announce.name].next;
+      }
       else throw new Error("Impossible d'enchérir plus haut");
       break;
-
   }
 };
 
@@ -668,7 +673,7 @@ Whist.prototype.getAvailableAnnounces = function getAvailableAnnounces() {
       break;
 
     case STATE_ANNOUNCE_AFTER_HOLE:
-      a = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ANNOUNCES[ann].type !== "Solo" && ANNOUNCES[ann].type !== "Emballage" && ANNOUNCES[ann].type !== "Piccolo"}));
+      a = _.uniq(Object.keys(ANNOUNCES).filter(function(ann){return ANNOUNCES[ann].type !== "Solo" && ANNOUNCES[ann].type !== "Emballage" && ANNOUNCES[ann].type !== "Piccolo" && ann != "Petite misère"}));
       break;
 
     case STATE_BIDS:

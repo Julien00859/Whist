@@ -40,7 +40,7 @@
 		<input type=submit ng-disabled=ctrl.game.started>
 	</form>
 
-	<form name=form_announce novalidate ng-submit=ctrl.sendAnnounce() ng-show="ctrl.game.state < 4">
+	<form name=form_announce_bid novalidate ng-submit=ctrl.sendAnnounce() ng-show="ctrl.game.state < 4">
 		<select required ng-model=ctrl.selectedAnnounce ng-disabled="ctrl.me.nickname != ctrl.game.currentPlayer">
 			<option ng-repeat="announce in ctrl.availableAnnounces" value={{announce}}>{{announce}}</option>
 		</select>
@@ -50,8 +50,20 @@
 		<input type=submit ng-disable="ctrl.me.nickname != ctrl.game.currentPlayer">
 	</form>
 
+	<p ng-show=ctrl.game.state>State: {{ctrl.game.state}} | Current player: {{ctrl.game.currentPlayer}} | Trump: {{ctrl.game.trump}}</p>
 	<section ng-repeat="pl in ctrl.game.players">
-		<strong ng-bind=pl></strong>
+		<p><strong ng-bind=pl></strong></p>
+		<p ng-show=ctrl.players[pl].announce>Annonce: {{ctrl.players[pl].announce}}</p>
+		<p ng-show=ctrl.players[pl].symbol>Symbole: <em ng-bind="ctrl.players[pl].symbol"></em></p>
+		<form name=form_cards novalidate ng-submit=ctrl.playCard(pl) ng-show=ctrl.players[pl].cards>
+			<select ng-model=ctrl.players[pl].selectedCard>
+				<option ng-repeat="card in ctrl.players[pl].cards.cards track by $index">{{card.toString()}}</option>
+			</select>
+			<input type=submit ng-show="!(ctrl.me.nickname != pl || !(ctrl.game.state == 4 || ctrl.game.state == 5))" ng-disabled="ctrl.me.nickname != ctrl.game.currentPlayer">
+		</form>
+	</section>
+	<section ng-show="ctrl.game.state == 5">
+		<p ng-show=ctrl.game.currentFold>Current fold: {{ctrl.game.currentFold.toString()}}</p>
 	</section>
 </body>
 </html>

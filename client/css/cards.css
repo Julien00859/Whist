@@ -1,5 +1,5 @@
 .cards {
-  display: block;
+  display: inline-block;
   background-image: url("../img/cards.png");
 }
 

@@ -5,8 +5,7 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
 
   this.me = {
     nickname: "",
-    nicknameValidated: false,
-    cards: []
+    nicknameValidated: false
   }
 
   this.game = {
@@ -21,8 +20,8 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
     // playerX: {
     //   nickname: "",
     //   announce: "",
-    //   myFriend: "",
-    //   cards: 13,
+    //   symbol: "",
+    //   cards: Cards([HiddenCard*13]),
     //   folds: "",
     //   lastFold: Cards(),
     //   side: "left/top/right/bottom"
@@ -56,9 +55,27 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
 
   this.sendAnnounce = function sendAnnounce() {
     if (_.contains($scope.ctrl.availableAnnounces, $scope.ctrl.selectedAnnounce)) {
-      if ($scope.ctrl.needSymbolForm($scope.ctrl.selectedAnnounce) && _.contains($scope.ctrl.symbols, $scope.ctrl.selectedSymbol))
-        $scope.ctrl.socket.emit("game announce", $scope.ctrl.selectedAnnounce, $scope.ctrl.selectedSymbol);
-      else $scope.ctrl.socket.emit("game announce", $scope.ctrl.selectedAnnounce);
+      switch($scope.ctrl.game.state) {
+        case 1:
+        case 2:
+          if ($scope.ctrl.needSymbolForm($scope.ctrl.selectedAnnounce) && _.contains($scope.ctrl.symbols, $scope.ctrl.selectedSymbol))
+            $scope.ctrl.socket.emit("announce", $scope.ctrl.selectedAnnounce, $scope.ctrl.selectedSymbol);
+          else $scope.ctrl.socket.emit("announce", $scope.ctrl.selectedAnnounce);
+          break;
+        case 3:
+          if ($scope.ctrl.needSymbolForm($scope.ctrl.selectedAnnounce) && _.contains($scope.ctrl.symbols, $scope.ctrl.selectedSymbol))
+            $scope.ctrl.socket.emit("bid", $scope.ctrl.selectedAnnounce, $scope.ctrl.selectedSymbol);
+          else $scope.ctrl.socket.emit("bid", $scope.ctrl.selectedAnnounce);
+          break;
+      }
+    }
+  }
+
+  this.playCard = function playCard(player) {
+    if ($scope.ctrl.me.nickname == player) {
+      if ($scope.ctrl.players[player].cards.contains(getCardsFromString($scope.ctrl.players[player].selectedCard))) {
+        $scope.ctrl.socket.emit("play card", $scope.ctrl.players[player].selectedCard);
+      }
     }
   }
 
@@ -97,7 +114,6 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
 
   this.newNormalGame = function newNormalGame(rawMsg) {
     if ($scope.ctrl.me.nicknameValidated) {
-      $scope.ctrl.me.cards = new Cards(getCardsFromString(rawMsg.cards));
       $scope.ctrl.game.players = rawMsg.players;
 
       for (var i in $scope.ctrl.game.players) {
@@ -105,7 +121,7 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
           nickname: $scope.ctrl.game.players[i],
           announce: undefined,
           myFriend: undefined,
-          cards: 13,
+          cards: $scope.ctrl.game.players[i] == $scope.ctrl.me.nickname ? new Cards(getCardsFromString(rawMsg.cards)) : new Cards((new Array(13)).fill(new HiddenCard())),
           folds: 0,
           lastFold: undefined,
           // Je serai toujours en bas, les autres me suivront dans l'ordre horlogique
@@ -123,12 +139,16 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
   this.socket.on("next turn", function(rawMsg){
     $scope.ctrl.game.currentPlayer = rawMsg.currentPlayer;
     $scope.ctrl.game.state = rawMsg.state;
+    $scope.ctrl.game.trump = rawMsg.trump;
 
     if ($scope.ctrl.game.currentPlayer == $scope.ctrl.me.nickname) {
       switch (rawMsg.state) {
         case 1:
+        case 2:
+        case 3:
           $scope.ctrl.availableAnnounces = rawMsg.availableAnnounces;
           break;
+
         default:
 
       }
@@ -136,5 +156,32 @@ angular.module("main", []).controller("fieldsController", function($scope, $sce,
     $scope.$apply();
   });
 
-  this.socket.on("game announce", function(ann, sym){console.log(ann, sym)});
+  this.socket.on("announces", function(announces){
+    $scope.ctrl.announces(announces)
+  });
+
+  this.announces = function announces(announces) {
+    if ($scope.ctrl.game.started) {
+      for (var ann in announces) {
+        $scope.ctrl.players[announces[ann].player].announce = announces[ann].announce;
+        $scope.ctrl.players[announces[ann].player].symbol = announces[ann].symbol;
+      }
+    } else {
+      // Tant que la partie n'est pas démarrée, on met la requête en attente
+      $timeout($scope.ctrl.announces, 100, false, announces);
+    }
+  }
+
+  this.socket.on("card played", function(nick, strCard){
+    var card = getCardsFromString(strCard);
+    if ($scope.ctrl.game.currentFold.getLength < 4) $scope.ctrl.game.currentFold.add(card);
+    else {
+      $scope.ctrl.game.currentFold = new Cards([card]);
+    }
+    if (nick == $scope.ctrl.me.nickname) {
+      $scope.ctrl.players[nick].cards.get(card);
+    } else {
+      $scope.ctrl.players[nick].cards.pull(1);
+    }
+  });
 });
