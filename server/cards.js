@@ -112,7 +112,8 @@ var getCardsFromString = function getCardsFromString(str) {
   str = str.split(" ");
 
   for (var i in str) {
-    cards.push(new Card(symbols[str[i][0]], names[str[i].slice(1)]));
+    if (str[i][0] in symbols && str[i].slice(1) in names) cards.push(new Card(symbols[str[i][0]], names[str[i].slice(1)]));
+    else throw new Error("ParseError");
   }
   return cards.length > 1 ? cards : cards[0];
 }

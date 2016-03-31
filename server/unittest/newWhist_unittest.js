@@ -617,6 +617,7 @@ test("play", function(){
   }, function(err){
     return err.message == "Ce n'est pas à ton tour de jouer";
   }, "play #1");
+
   throws(function(){
     partie.play.call({
       currentPlayer: "player 1",
@@ -625,6 +626,7 @@ test("play", function(){
   }, function(err){
     return err.message == "L'annonce doit être définie et de type string";
   }, "play #2");
+
   throws(function(){
     partie.play.call({
       currentPlayer: "player 1",
@@ -633,6 +635,7 @@ test("play", function(){
   }, function(err){
     return err.message == "L'annonce doit être définie et de type string";
   }, "play #3");
+
   throws(function(){
     partie.play.call({
       currentPlayer: "player 1",
@@ -641,32 +644,196 @@ test("play", function(){
   }, function(err){
     return err.message == "L'annonce n'existe pas";
   }, "play #4");
+
   throws(function(){
     partie.play.call({
+      getAvailableAnnounces: partie.getAvailableAnnounces,
+      playersList: partie.playersList,
       currentPlayer: "player 1",
       state: 1,
       players: {
-        "player 1": {announce: {}}
+        "player 1": {announce: {}},
+        "player 2": {announce: {}},
+        "player 3": {announce: {}},
+        "player 4": {announce: {}},
       }
-    }, "player 1", "Solo 6")
+    }, "player 1", "Abondance 9")
   }, function(err){
     return err.message == "Le symbole doit être défini et de type string";
   }, "play #5");
+
   throws(function(){
     partie.play.call({
+      getAvailableAnnounces: partie.getAvailableAnnounces,
+      playersList: partie.playersList,
       currentPlayer: "player 1",
       state: 1,
       players: {
-        "player 1": {announce: {}}
+        "player 1": {announce: {}},
+        "player 2": {announce: {}},
+        "player 3": {announce: {}},
+        "player 4": {announce: {}},
       }
-    }, "player 1", "Solo 6", "nimporte quoi")
+    }, "player 1", "Abondance 9", "nimporte quoi")
   }, function(err){
     return err.message == "Le symbole n'existe pas";
   }, "play #6");
 
+  throws(function(){
+    partie.play.call({
+      getAvailableAnnounces: partie.getAvailableAnnounces,
+      playersList: partie.playersList,
+      currentPlayer: "player 1",
+      state: 1,
+      players: {
+        "player 1": {cards: partie.players["player 1"].cards, announce: {}},
+        "player 2": {announce: {}},
+        "player 3": {announce: {}},
+        "player 4": {announce: {}},
+      }
+    }, "player 1", "Abondance 9", "Diamond")
+  }, function(err){
+    return err.message == "Le joueur doit posséder au moins une carte du symbol donné";
+  }, "play #7");
 
+  throws(function(){
+    partie.play.call({
+      currentPlayer: "player 1",
+      state: 3
+    }, "player 1")
+  }, function(err){
+    return err.message == "L'enchère doit être définie et de type string";
+  }, "play #8");
 
+  throws(function(){
+    partie.play.call({
+      getAvailableAnnounces: partie.getAvailableAnnounces,
+      playersList: partie.playersList,
+      currentPlayer: "player 1",
+      state: 3,
+      players: {
+        "player 1": {announce: {name: "Solo 6", symbol: "Club"}},
+        "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
+        "player 3": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}},
+      }
+    }, "player 1", "Emballer")
+  }, function(err){
+    return err.message == "Le symbole doit être défini et de type string";
+  }, "play #9");
 
+  throws(function(){
+    partie.play.call({
+      getAvailableAnnounces: partie.getAvailableAnnounces,
+      playersList: partie.playersList,
+      currentPlayer: "player 1",
+      state: 3,
+      players: {
+        "player 1": {announce: {name: "Solo 6", symbol: "Club"}},
+        "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
+        "player 3": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}},
+      }
+    }, "player 1", "Emballer", 1)
+  }, function(err){
+    return err.message == "Le symbole doit être défini et de type string";
+  }, "play #10");
+
+  throws(function(){
+    partie.play.call({
+      getAvailableAnnounces: partie.getAvailableAnnounces,
+      playersList: partie.playersList,
+      currentPlayer: "player 1",
+      state: 3,
+      players: {
+        "player 1": {announce: {name: "Solo 6", symbol: "Club"}},
+        "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
+        "player 3": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}},
+      }
+    }, "player 1", "Emballer", "nimporte quoi")
+  }, function(err){
+    return err.message == "Le symbole n'existe pas";
+  }, "play #11");
+
+  throws(function(){
+    partie.play.call({
+      getAvailableAnnounces: partie.getAvailableAnnounces,
+      playersList: partie.playersList,
+      currentPlayer: "player 2",
+      state: 3,
+      players: {
+        "player 1": {announce: {name: "Solo 6", symbol: "Club"}},
+        "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
+        "player 3": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}},
+      }
+    }, "player 2", "Emballer", "Club")
+  }, function(err){
+    return err.message == "Le joueur ne peut emballer qu'un symbole plus fort que le sien";
+  }, "play #12");
+
+  throws(function(){
+    partie.play.call({
+      getAvailableAnnounces: partie.getAvailableAnnounces,
+      playersList: partie.playersList,
+      currentPlayer: "player 2",
+      state: 3,
+      players: {
+        "player 1": {announce: {name: "Solo 6", symbol: "Heart"}},
+        "player 2": {announce: {name: "Solo 6", symbol: "Club"}},
+        "player 3": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}},
+      }
+    }, "player 2", "Emballer", "Heart")
+  }, function(err){
+    return err.message == "Le joueur doit posséder au moins une carte du symbol donné";
+  }, "play #13");
+  throws(function(){
+    partie.play.call({
+      currentPlayer: "player 1",
+      state: 5
+    }, "player 1")
+  }, function(err){
+    return err.message == "La carte doit être définie et de type string";
+  }, "play #14");
+
+  throws(function(){
+    partie.play.call({
+      currentPlayer: "player 1",
+      state: 5
+    }, "player 1", 1)
+  }, function(err){
+    return err.message == "La carte doit être définie et de type string";
+  }, "play #15");
+
+  throws(function(){
+    partie.play.call({
+      currentPlayer: "player 1",
+      state: 5
+    }, "player 1", "nimporte quoi")
+  }, function(err){
+    return err.message == "Impossible de convertir la chaine en carte";
+  }, "play #16");
+
+  throws(function(){
+    partie.play.call({
+      currentPlayer: "player 1",
+      state: 5
+    }, "player 1", "♥2 ♥3")
+  }, function(err){
+    return err.message == "La chaine envoyée doit représenter une carte";
+  }, "play #17");
+
+  throws(function(){
+    partie.play.call({
+      currentPlayer: "player 1",
+      state: 5,
+      players:{"player 1":{cards: partie.players["player 1"].cards}}
+    }, "player 1", "♦2")
+  }, function(err){
+    return err.message == "Le joueur doit posséder la carte";
+  }, "play #18");
 
   throws(function(){
     partie.play.call({
@@ -675,7 +842,16 @@ test("play", function(){
     }, "player 1")
   }, function(err){
     return err.message == "La partie est terminée";
-  }, "play #2");
+  }, "play #19");
+
+  throws(function(){
+    partie.play.call({
+      currentPlayer: "player 1",
+      state: 7
+    }, "player 1")
+  }, function(err){
+    return err.message == "État du jeu inconnu";
+  }, "play #20");
 });
 
 function fabriquerUnePartie() {

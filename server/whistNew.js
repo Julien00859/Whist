@@ -434,7 +434,7 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
             if (bid == "Emballer") {
               if (typeof symbol == "string") {
                 if (_.contains(cardsLib.symbols, symbol)) {
-                  if (cardsLib.symbol.indexOf(this.players[player].announce.symbol) > cardsLib.symbol.indexOf(symbol)) {
+                  if (cardsLib.symbols.indexOf(this.players[player].announce.symbol) > cardsLib.symbols.indexOf(symbol)) {
                     if (_.any(this.players[player].cards, function(card){return card.symbol == symbol})) {
                       // Appel de la fonction
                     } else throw new WhistError("Le joueur doit posséder au moins une carte du symbol donné");
@@ -450,20 +450,22 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
 
       case STATE_RETRIEVE_CART:
       case STATE_PLAY:
+        var card = arg1;
         if (typeof card == "string") {
           try {
-            var card = getCardsFromString(arg1);
+            card = cardsLib.getCardsFromString(arg1);
           } catch(err) {
             throw new WhistError("Impossible de convertir la chaine en carte");
-          } finally {
-            if (card instanceof cardsLib.Card) {
+          }
+          if (card instanceof cardsLib.Card) {
+            if (this.players[this.currentPlayer].cards.contains(card)) {
               if (this.state == STATE_RETRIEVE_CART) {
                 // Appel de la fonction
               } else {
                 // Appel de la fonction
               }
-            } else throw new WhistError("La chaine envoyée ne peut pas représenter une carte");
-          }
+            } else throw new WhistError("Le joueur doit posséder la carte");
+          } else throw new WhistError("La chaine envoyée doit représenter une carte");
         } else throw new WhistError("La carte doit être définie et de type string");
         break;
 
