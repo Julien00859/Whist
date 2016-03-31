@@ -178,11 +178,13 @@ Whist.prototype.newNormalGame = function newNormalGame() {
     this.state = STATE_ANNOUNCE_AFTER_HOLE;
 
     this.players[playerWith3As].announce.name = "Trou";
+    this.players[playerWith3As].announce.holeConfirmed = false;
 
     // Recherche du bouche-trou
     for (var playerWith1As of _.without(this.playersList, playerWith3As)) {
       if (this.has1As(playerWith1As)) {
         this.players[playerWith1As].announce.name = "Bouche-trou";
+        this.players[playerWith1As].announce.holeConfirmed = false;
         this.players[playerWith1As].announce.myFriend = playerWith3As;
         this.players[playerWith3As].announce.myFriend = playerWith1As;
         break;
@@ -192,6 +194,7 @@ Whist.prototype.newNormalGame = function newNormalGame() {
     // Pas de trou
     this.state = STATE_ANNOUNCE;
   }
+  this.currentPlayer = this.getNextPlayerFollowingAnnounces();
   return this.state;
 }
 
@@ -206,14 +209,15 @@ Whist.prototype.resetGame = function resetGame() {
   for (var pl in this.players) {
     // Reset la mapping des joueurs
     this.players[pl].announce = {
-      name: undefined,
-      symbol: undefined,
-      canTalk: undefined,
-      wasSolo: undefined,
-      myFriend: undefined
+      name: undefined, // Le nom de l'annonce
+      symbol: undefined, // Le symbol de l'annonce (Solo, Emballage, Abondance)
+      canTalk: undefined, // Si le joueur a été emballé, si il a la parole
+      wasSolo: undefined, // Si le joueur était Solo avant de se faire emballer
+      myFriend: undefined, // L'ami d'annonce (Emballage, Trou & Bouche-trou)
+      holeConfirmed: undefined // Si lors d'un Trou, le Trou ou le Bouche-trou a confirmé son annonce
     }
-    this.players[pl].folds = undefined;
-    this.players[pl].cards = undefined;
+    this.players[pl].folds = undefined; // Les plis gagnés par le joueur
+    this.players[pl].cards = undefined; // La main du joueur
   }
 
   // Reset de l'état du jeu
@@ -291,14 +295,18 @@ Whist.prototype.getAvailableAnnounces = function getAvailableAnnounces() {
       break;
 
     case STATE_ANNOUNCE_AFTER_HOLE:
-      availableAnnounces.push("Passer");
+      // Si le joueur est Trou alors n'annonce Trou, si il est Bouche-trou alors l'annonce "Bouche-trou", sinon Passer
+      if (this.players[this.currentPlayer].announce.name == "Trou") availableAnnounces.push("Trou");
+      else if (this.players[this.currentPlayer].announce.name == "Bouche-trou") availableAnnounces.push("Bouche-trou");
+      else availableAnnounces.push("Passer");
+
       // Toutes les annonces supérieures ou égales au Bouche-trou
-      availableAnnounces = availableAnnounces.concat(_.filter(Object.keys(ANNOUNCES), function(ann){return announcesList.indexOf(ann) <= announcesList.indexOf("Bouche-trou")}.reverse()));
+      availableAnnounces = availableAnnounces.concat(_.filter(Object.keys(ANNOUNCES), function(ann){return announcesList.indexOf(ann) < announcesList.indexOf("Trou")}).reverse());
       break;
 
     case STATE_BIDS:
-      if (this.player[pl].announce.name == "Solo 6" && _.filter(others, function(pl){return this.players[pl].announce.name == "Solo 6"}).length > 0) availableAnnounces.push("Emballer");
-      availableAnnounces.push("Encherir");
+      if (this.players[this.currentPlayer].announce.name == "Solo 6" && _.filter(others, function(pl){return self.players[pl].announce.name == "Solo 6"}).length > 0) availableAnnounces.push("Emballer");
+      if (!_.isUndefined(ANNOUNCES[this.players[this.currentPlayer].announce.name].next)) availableAnnounces.push("Enchérir");
       availableAnnounces.push("Passer");
       break;
 
@@ -306,8 +314,90 @@ Whist.prototype.getAvailableAnnounces = function getAvailableAnnounces() {
   return availableAnnounces;
 }
 
+Whist.prototype.getComputedState = function getComputedState() {
+  var self = this;
+  switch (this.state) {
+    case STATE_ANNOUNCE:
+    case STATE_ANNOUNCE_AFTER_HOLE:
+      if (_.any(this.playersList, function(pl){
+        return _.isUndefined(self.players[pl].announce.name) || self.players[pl].announce.name == "Premier" || ((ANNOUNCES[self.players[pl].announce.name].type == "Trou") ? !self.players[pl].announce.holeConfirmed : false);
+      })) return this.state;
+
+    case STATE_BIDS:
+      var playersWithAnnounce = _.filter(this.playersList, function(pl){return self.players[pl].announce.name != "Passer"});
+      switch (playersWithAnnounce.length) {
+        case 0:
+          return STATE_END;
+
+        case 1:
+          if (this.players[playersWithAnnounce[0]].announce.name == "Petite misère") return STATE_RETRIEVE_CART;
+          else return STATE_PLAY;
+
+        case 2:
+          if (_.every(playersWithAnnounce, function(pl){
+            return _.contains(["Emballage", "Trou"], ANNOUNCES[self.players[pl].announce.name].type);
+          })) return STATE_PLAY;
+
+        default:
+          return STATE_BIDS;
+      }
+
+    case STATE_RETRIEVE_CART:
+      if (_.every(this.playersList, function(pl){
+        return self.players[pl].cards.getLength() == 12;
+      })) return STATE_PLAY;
+      else return this.state;
+
+    case STATE_PLAY:
+      if (_.every(this.playersList, function(pl){
+        return self.players[pl].cards.getLength() == 0;
+      })) return STATE_END;
+      else return this.state;
+  }
+}
+
 Whist.prototype.dealWithAnnounce = function dealWithAnnounce(announce, symbol) {
 
+  // On a un trou qui se désiste
+  if (ANNOUNCES[this.players[this.currentPlayer].announce.name].type == "Trou" && this.players[this.currentPlayer].announce.name != announce) {
+    var myFriend = this.players[this.currentPlayer].announce.myFriend;
+    this.players[this.currentPlayer].announce.myFriend = undefined;
+
+    this.players[myFriend].announce.name = undefined;
+    this.players[myFriend].announce.myFriend = undefined;
+  }
+
+  switch(ANNOUNCE[announce].type) {
+    case "Solo":
+    case "Abondance":
+      this.players[this.currentPlayer].announce.symbol = symbol;
+    case "Misère":
+    case "Piccolo":
+    case "Chelem":
+      this.players[this.currentPlayer].announce.name = announce;
+      break;
+
+    case "Emballage":
+      var soloWithinTheSameSymbol = _.chain(this.playersList).without(this.currentPlayer).filter(function(pl){
+        return this.players[pl].announce.name == "Solo 6" && this.players[pl].announce.symbol == symbol;
+      }).first().value;
+
+      if (!_.isUndefined(soloWithinTheSameSymbol)) {
+        this.players[this.currentPlayer].announce.name = announce;
+        this.players[this.currentPlayer].announce.symbol = symbol;
+        this.players[this.currentPlayer].announce.wasSolo = false;
+        this.players[this.currentPlayer].announce.myFriend = soloWithinTheSameSymbol;
+        this.players[soloWithinTheSameSymbol].announce.name = announce;
+        this.players[soloWithinTheSameSymbol].announce.symbol = symbol;
+        this.players[soloWithinTheSameSymbol].announce.wasSolo = true;
+        this.players[soloWithinTheSameSymbol].announce.myFriend = this.currentPlayer;
+
+      } else throw new WhistError("Aucun joueur solo n'a annoncé dans ce symbol");
+      break;
+
+    case "Trou":
+      this.players[this.currentPlayer].announce.holeConfirmed = true;
+  }
 }
 
 Whist.prototype.play = function play(player, arg1, arg2, arg3) {
