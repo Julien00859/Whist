@@ -297,16 +297,20 @@ Whist.prototype.getAvailableAnnounces = function getAvailableAnnounces() {
       break;
 
     case STATE_BIDS:
-      if (_.filter(others, function(pl){return this.players[pl].announce.name == "Solo 6"}).length > 0) availableAnnounces.push("Emballer");
+      if (this.player[pl].announce.name == "Solo 6" && _.filter(others, function(pl){return this.players[pl].announce.name == "Solo 6"}).length > 0) availableAnnounces.push("Emballer");
       availableAnnounces.push("Encherir");
       availableAnnounces.push("Passer");
       break;
 
   }
   return availableAnnounces;
-};
+}
 
-Whist.prototype.play = function(player, arg1, arg2, arg3) {
+Whist.prototype.dealWithAnnounce = function dealWithAnnounce(announce, symbol) {
+
+}
+
+Whist.prototype.play = function play(player, arg1, arg2, arg3) {
   if (this.currentPlayer == player) {
     switch (this.state) {
       case STATE_ANNOUNCE:
@@ -319,7 +323,9 @@ Whist.prototype.play = function(player, arg1, arg2, arg3) {
               if (_.contains(["Solo", "Emballage", "Abondance"], ANNOUNCES[announce].type)) { // Si l'annonce doit être accompagné d'un symbol
                 if (typeof symbol == "string") { // Le symbol doit être défini et de type string
                   if (_.contains(cardsLib.symbols, symbol)) { // Le symbol doit exister
-                    // Appel de la fonction
+                    if (_.any(this.players[player].cards, function(card){return card.symbol == symbol})) {
+                      // Appel de la fonction
+                    } else throw new WhistError("Le joueur doit posséder au moins une carte du symbol donné")
                   } else throw new WhistError("Le symbole n'existe pas");
                 } else throw new WhistError("Le symbole doit être défini et de type string");
               } else {
@@ -338,7 +344,11 @@ Whist.prototype.play = function(player, arg1, arg2, arg3) {
             if (bid == "Emballer") {
               if (typeof symbol == "string") {
                 if (_.contains(cardsLib.symbols, symbol)) {
-                  // Appel de la fonction
+                  if (cardsLib.symbol.indexOf(this.players[player].announce.symbol) > cardsLib.symbol.indexOf(symbol)) {
+                    if (_.any(this.players[player].cards, function(card){return card.symbol == symbol})) {
+                      // Appel de la fonction
+                    } else throw new WhistError("Le joueur doit posséder au moins une carte du symbol donné");
+                  } else throw new WhistError("Le joueur ne peut emballer qu'un symbole plus fort que le sien");
                 } else throw new WhistError("Le symbole n'existe pas");
               } else throw new WhistError("Le symbole doit être défini et de type string");
             } else {
