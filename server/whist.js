@@ -147,7 +147,7 @@ var Whist = function Whist(players) {
           name: undefined, // Le nom de l'annonce
           symbol: undefined, // Si on annonce Solo ou Emballage, le symbole de l'annonce
           canTalk: true, // Celui qui peut parler durant un emballage
-          wasSolo: undefined, //  Passe à true si un joueur se fait emballé, passe à false si on emballe quelqu'un
+          wasSolo: undefined, //  Passe à true si un joueur se fait emballer, passe à false si on emballe quelqu'un
           myFriend: undefined // Le nom de notre allié pour les emballages et le trou
         },
         folds: [], // Les plis que le joueur a réalisé
@@ -161,7 +161,7 @@ var Whist = function Whist(players) {
   this.game = {
     folds: [], // La liste des plis joués
     turn: 1, // Le numéro du tour
-    trump: undefined // L'atoux de la partie
+    trump: undefined // L'atout de la partie
   }
   this.newNormalGame()
 };
@@ -466,7 +466,11 @@ Whist.prototype.bidsGetNextPlayerAndMaybeChangeState = function bidsGetNextPlaye
         return [pl, self.players[pl].announce.name, _.isUndefined(self.players[pl].announce.symbol) ? cardsLib.symbols[3] : self.players[pl].announce.symbol]
       }).sort(function(tpl1, tpl2){
         // On trie par ordre croissant d'annonce (primaire) et par ordre croissant de puissance de symbole (secondaire, la décimale)
-        return Object.keys(ANNOUNCES).reverse().indexOf(tpl1[1]) + (cardsLib.symbols.slice().reverse().indexOf(tpl1[2]) / 4) - Object.keys(ANNOUNCES).reverse().indexOf(tpl2[1]) + (cardsLib.symbols.slice().reverse().indexOf(tpl2[2]) / 4)}
+        var tpl1AnnounceStrength = Object.keys(ANNOUNCES).reverse().indexOf(tpl1[1]);
+        var tpl1SymbolStrength = cardsLib.symbols.slice().reverse().indexOf(tpl1[2]) / 4;
+        var tpl2AnnounceStrength = Object.keys(ANNOUNCES).reverse().indexOf(tpl2[1]);
+        var tpl2SymbolStrength = cardsLib.symbols.slice().reverse().indexOf(tpl2[2]) / 4;
+        return tpl1AnnounceStrength + tpl1SymbolStrength - tpl2AnnounceStrength - tpl2SymbolStrength}
       )[0][0]; // Pour le premier tuple, son pseudo
   }
 };

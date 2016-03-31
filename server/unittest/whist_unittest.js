@@ -98,7 +98,7 @@ test("Announces", function() {
     partie.players["player 1"].announce.name = undefined;
     partie.players["player 1"].announce.symbol = undefined;
     return _.isUndefined(partie.playTurn("player 1", {announce: ann, announceSymbol: "Heart"}));
-  })), "Toute les annonces obtenues par la méthode 'getAvailableAnnounces' sont valides")
+  })), "Toute les annonces obtenues par la méthode 'getAvailableAnnounces' sont valides");
 
   throws(
     function(){partie.playTurn("player 2", {announce: "Solo", announceSymbol: "Heart"})},
@@ -112,7 +112,7 @@ test("Announces", function() {
     function(){partie.playTurn("player 2", {announce: "Solo", announceSymbol: "Diamond"})},
     function(err){return err.message === "Le joueur doit posséder au moins une carte du symbole annoncé"},
     "Un joueur n'ayant pas de carreau ne peut pas annoncer carreau");
-  ok( _.isUndefined(partie.playTurn("player 2", {announce: "Solo", announceSymbol: "Spade"})), "Un joueur ayant du pique peut annoncer pique");
+  ok( _.isUndefined(partie.playTurn("player 2", {announce: "Solo", announceSymbol: "Spade"})), "Un joueur ayant du pique peut annoncer pique");  
 });
 
 function fabriquerUnePartie() {

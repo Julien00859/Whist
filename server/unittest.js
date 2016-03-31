@@ -36,5 +36,10 @@ testrunner.run(
   {
     code: "whist.js",
     tests: "unittest/whist_unittest.js"
-  }]
+  },
+  {
+    code: "whistNew.js",
+    tests: "unittest/newWhist_unittest.js"
+  }
+]
 );
