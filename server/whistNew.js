@@ -400,6 +400,32 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(announce, symbol) {
   }
 }
 
+Whist.prototype.prepareGameToPlay = function prepareGameToPlay() {
+  var playersWithAnnounce = _.filter(this.playersList, function(pl){return self.players[pl].announce.name != "Passer"});
+  switch (playersWithAnnounce.length) {
+    case 1:
+      var player = playersWithAnnounce[0];
+      switch (ANNOUNCES[this.players[player].announce.name].type) {
+        case "Chelem"
+        case "Abondance":
+          this.currentPlayer = player;
+        case "Solo":
+          this.game.trump = this.players[player].announce.symbol;
+          break;
+      }
+      break;
+    case 2:
+      if (ANNOUNCES[this.players[playersWithAnnounce[0]].announce.name].type == "Emballage") {
+        this.game.trump = this.players[playersWithAnnounce[0]].announce.symbol;
+      } else if (this.players[playersWithAnnounce[0].announce.name == "Bouche-trou"]){
+        this.currentPlayer = playersWithAnnounce[0];
+      } else {
+        this.currentPlayer = playersWithAnnounce[1];
+      }
+      break;
+  }
+}
+
 Whist.prototype.play = function play(player, arg1, arg2, arg3) {
   if (this.currentPlayer == player) {
     switch (this.state) {
@@ -414,7 +440,17 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
                 if (typeof symbol == "string") { // Le symbol doit être défini et de type string
                   if (_.contains(cardsLib.symbols, symbol)) { // Le symbol doit exister
                     if (_.any(this.players[player].cards, function(card){return card.symbol == symbol})) {
-                      // Appel de la fonction
+
+                      this.dealWithAnnounce(announce, symbol);
+                      var nextState = this.getComputedState();
+                      if (nextState == STATE_ANNOUNCE || nextState == STATE_BIDS) {
+                        this.currentPlayer = this.getNextPlayerFollowingAnnounces();
+                      } else if (nextState == STATE_PLAY) {
+                        this.prepareGameToPlay();
+                      }
+                      this.state = nextState;
+
+
                     } else throw new WhistError("Le joueur doit posséder au moins une carte du symbol donné")
                   } else throw new WhistError("Le symbole n'existe pas");
                 } else throw new WhistError("Le symbole doit être défini et de type string");
@@ -436,7 +472,11 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
                 if (_.contains(cardsLib.symbols, symbol)) {
                   if (cardsLib.symbols.indexOf(this.players[player].announce.symbol) > cardsLib.symbols.indexOf(symbol)) {
                     if (_.any(this.players[player].cards, function(card){return card.symbol == symbol})) {
-                      // Appel de la fonction
+                      this.dealWithAnnounce(announce, symbol);
+                      var nextState = this.getComputedState();
+                      if (nextState > 3) {
+
+                      }
                     } else throw new WhistError("Le joueur doit posséder au moins une carte du symbol donné");
                   } else throw new WhistError("Le joueur ne peut emballer qu'un symbole plus fort que le sien");
                 } else throw new WhistError("Le symbole n'existe pas");
