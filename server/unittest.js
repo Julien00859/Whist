@@ -30,17 +30,13 @@ testrunner.setup({
 
 testrunner.run(
   [
-    // {
-    //   code: "cards.js",
-    //   tests: "unittest/cards_unittest.js"
-    // },
-    // {
-    //   code: "whist.js",
-    //   tests: "unittest/whist_unittest.js"
-    // },
-    {
-      code: "whistNew.js",
-      tests: "unittest/newWhist_unittest.js"
+     {
+       code: "cards.js",
+       tests: "unittest/cards_unittest.js"
+     },
+     {
+       code: "whist.js",
+       tests: "unittest/whist_unittest.js"
     }
   ]
 );
