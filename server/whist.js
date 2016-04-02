@@ -410,7 +410,7 @@ Whist.prototype.prepareGameToPlay = function prepareGameToPlay() {
     case 1:
       var player = playersWithAnnounce[0];
       switch (ANNOUNCES[this.players[player].announce.name].type) {
-        case "Chelem"
+        case "Chelem":
         case "Abondance":
           this.currentPlayer = player;
         case "Solo":
@@ -618,7 +618,7 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
             if (this.players[this.currentPlayer].cards.contains(card)) {
               if (this.state == STATE_RETRIEVE_CART) {
                 // Appel de la fonction
-                
+
               } else {
                 this.dealWithCardPlayed(card);
                 this.dealWithTurns();

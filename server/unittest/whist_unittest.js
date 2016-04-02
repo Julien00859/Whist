@@ -1,6 +1,6 @@
 const _ = require("underscore");
-const Whist = require("../whistNew").Whist;
-const WhistError = require("../whistNew").WhistError;
+const Whist = require("../whist").Whist;
+const WhistError = require("../whist").WhistError;
 const cardsLib = require("../cards");
 
 test("new Whist()", function() {
