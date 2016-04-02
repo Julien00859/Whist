@@ -8,6 +8,7 @@ const http = require("http").Server(app);
 const socketio = require("socket.io")(http);
 const _ = require("underscore");
 const Whist = require("./whist.js").Whist;
+const WhistError = require("./whist.js").WhistError;
 
 // Récupération de la configuration
 const config = JSON.parse(fs.readFileSync(pathlib.join(process.cwd(), "config.json"), "utf8"));
@@ -94,78 +95,44 @@ socketio.on("connection", function(socket){
     }
   });
 
-  socket.on("announce", function(argAnnounce, argSymbol){
+  socket.on("play", function(arg1, arg2){
     var nick = room.sockets[socket.client.id];
     var gameId = room.nicknames[nick].gameId;
     var game = room.tables[gameId];
 
+    console.log("[ " + gameId + "]", nick, arg1, arg2);
+
+    var previousState = game.state;
     try {
-      game.playTurn(nick, {announce: argAnnounce, announceSymbol: argSymbol});
+      game.playTurn(nick, arg1, arg2);
     } catch (err) {
-      console.log("[" + gameId + "] " + err)
-      socket.emit("myerror", {code: 6, msg: err.message});
-      return;
-    }
-    console.log("[" + game.id + "] " + nick + " announced " + argAnnounce + (argSymbol ? " " + argSymbol : ""));
-    var announces = Object.keys(game.players).map(function(pl){
-      return {
-        "player": pl,
-        "announce": game.players[pl].announce.name,
-        "symbol": game.players[pl].announce.symbol
+      if (err instanceof WhistError) {
+        console.log("[" + gameId + "] " + err)
+        socket.emit("myerror", {code: 6, msg: err.message});
+        return;
+      } else {
+        throw err;
       }
-    });
-    _.each(Object.keys(game.players), function(pl){
-      room.nicknames[pl].socket.emit("announces", announces);
-      room.nicknames[pl].socket.emit("next turn", {state: game.state, availableAnnounces: game.getAvailableAnnounces(), currentPlayer: game.currentPlayer, trump: game.game.trump});
-    });
-    console.log("[" + game.id + "] Current player: " + game.currentPlayer);
-  });
-
-  socket.on("bid", function(argBid, argSym) {
-    var nick = room.sockets[socket.client.id];
-    var gameId = room.nicknames[nick].gameId;
-    var game = room.tables[gameId];
-
-    try {
-      game.playTurn(nick, {bid: argBid, symbol: argSym});
-    } catch (err) {
-      console.log("[" + gameId + "] " + err)
-      socket.emit("myerror", {code: 6, msg: err.message});
-      return;
     }
-    console.log("[" + game.id + "] " + nick + " bidded " + argBid + (argSym ? " " + argSym : ""));
-    var announces = Object.keys(game.players).map(function(pl){
-      return {
-        "player": pl,
-        "announce": game.players[pl].announce.name,
-        "symbol": game.players[pl].announce.symbol
-      }
-    });
-    _.each(Object.keys(game.players), function(pl){
-      room.nicknames[pl].socket.emit("announces", announces);
-      room.nicknames[pl].socket.emit("next turn", {state: game.state, availableAnnounces: game.getAvailableAnnounces(), currentPlayer: game.currentPlayer});
-    });
-    console.log("[" + game.id + "] Current player: " + game.currentPlayer);
 
-  });
-
-  socket.on("play card", function(argCard) {
-    var nick = room.sockets[socket.client.id];
-    var gameId = room.nicknames[nick].gameId;
-    var game = room.tables[gameId];
-
-    try {
-      game.playTurn(nick, {card: argCard});
-    } catch (err) {
-      console.log("[" + gameId + "] " + err)
-      socket.emit("myerror", {code: 6, msg: err.message});
-      return;
+    if (previousState < 4) {
+      var announces = Object.keys(game.players).map(function(pl){
+        return {
+          "player": pl,
+          "announce": game.players[pl].announce.name,
+          "symbol": game.players[pl].announce.symbol
+        }
+      });
+      _.each(Object.keys(game.players), function(pl){
+        room.nicknames[pl].socket.emit("announces", announces);
+      });
     }
-    console.log("[" + game.id + "] " + nick + " played card " + argCard);
-    _.each(Object.keys(game.players), function(pl){
-      room.nicknames[pl].socket.emit("card played", nick, argCard);
-      room.nicknames[pl].socket.emit("next turn", {state: game.state, currentPlayer: game.currentPlayer});
-    });
+
+    if (previousState != game.state && game.state == 5 && !_.isUndefined(game.game.trump)) {
+      _.each(game.playersList, function(pl) {
+        room.nicknames[pl].socket.emit("trump", game.game.trump);
+      });
+    }
     console.log("[" + game.id + "] Current player: " + game.currentPlayer);
   });
 

@@ -517,7 +517,7 @@ Whist.prototype.dealWithTurns = function dealWithTurns() {
   } else {
     this.currentPlayer = this.nextPlayer();
   }
-};
+}
 
 Whist.prototype.play = function play(player, arg1, arg2, arg3) {
   if (this.currentPlayer == player) {
@@ -617,12 +617,13 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
           if (card instanceof cardsLib.Card) {
             if (this.players[this.currentPlayer].cards.contains(card)) {
               if (this.state == STATE_RETRIEVE_CART) {
-                // Appel de la fonction
+                this.players[this.currentPlayer].cards.get(card);
+                this.currentPlayer = this.getNextPlayer();
+                if (_.every(this.playersList, function(pl){return this.players[pl].cards.getLength == 12})) this.state = STATE_PLAY;
 
               } else {
                 this.dealWithCardPlayed(card);
                 this.dealWithTurns();
-                this.state = this.getComputedState();
               }
             } else throw new WhistError("Le joueur doit posséder la carte");
           } else throw new WhistError("La chaine envoyée doit représenter une carte");
