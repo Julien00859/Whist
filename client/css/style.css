@@ -10,11 +10,14 @@ html {
   background-color: inital;
   padding: 0;
   overflow: hidden;
+	height: 100%;
+	width: 100%;
 }
 
 body {
   padding: 0;
   margin: 0;
+	height: 100%;;
 }
 
 section {
@@ -77,4 +80,16 @@ h1 {
 
 .activeSide {
   font-style: italic;
+}
+.container {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.boxPli {
+	background-image: url(../img/bois.jpg);
+	width: 550px;
+	height: 336px;
 }
