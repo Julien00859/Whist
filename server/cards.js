@@ -9,7 +9,7 @@ var Card = function Card(symbol, name) {
     this.name = name;
     this.symbol = symbol;
   } else {
-    throw "Unknown card " + symbol + " " + name;
+    throw new Error("Unknown card " + symbol + " " + name);
   }
 }
 Card.prototype.toString = function toString() {

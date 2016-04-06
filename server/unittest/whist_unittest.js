@@ -49,7 +49,7 @@ test("getNextPlayerFollowingAnnounces", function(){
       "player 1": {announce: {name: "premier"}},
       "player 2": {announce: {}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), "player 2", "getNextPlayerFollowingAnnounces #1");
 
@@ -59,7 +59,7 @@ test("getNextPlayerFollowingAnnounces", function(){
       "player 1": {announce: {name: "passer"}},
       "player 2": {announce: {name: "passer"}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), "player 3", "getNextPlayerFollowingAnnounces #2");
 
@@ -69,7 +69,7 @@ test("getNextPlayerFollowingAnnounces", function(){
       "player 1": {announce: {name: "Solo 6"}},
       "player 2": {announce: {name: "Abondance"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), "player 4", "getNextPlayerFollowingAnnounces #3");
 
@@ -79,7 +79,7 @@ test("getNextPlayerFollowingAnnounces", function(){
       "player 1": {announce: {name: "Premier", canTalk: true}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), "player 1", "getNextPlayerFollowingAnnounces #4");
 
@@ -89,7 +89,7 @@ test("getNextPlayerFollowingAnnounces", function(){
       "player 1": {announce: {name: "Grand chelem", canTalk: true}},
       "player 2": {announce: {name: "Grande misère", canTalk: true}},
       "player 3": {announce: {name: "Abondance 9", canTalk: true}},
-      "player 4": {announce: {name: "Passer", canTalk: true}},
+      "player 4": {announce: {name: "Passer", canTalk: true}}
     }
   }), "player 3", "getNextPlayerFollowingAnnounces #5");
 
@@ -99,7 +99,7 @@ test("getNextPlayerFollowingAnnounces", function(){
       "player 1": {announce: {name: "Passer"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Solo 6", symbol: "Heart", canTalk: true}},
-      "player 4": {announce: {name: "Solo 6", symbol: "Spade", canTalk: true}},
+      "player 4": {announce: {name: "Solo 6", symbol: "Spade", canTalk: true}}
     }
   }), "player 4", "getNextPlayerFollowingAnnounces #6");
 
@@ -109,7 +109,7 @@ test("getNextPlayerFollowingAnnounces", function(){
       "player 1": {announce: {name: "Emballage 8", symbol: "Club", canTalk: false}},
       "player 2": {announce: {name: "Emballage 8", symbol: "Club", canTalk: true}},
       "player 3": {announce: {name: "Solo 6", symbol: "Heart", canTalk: true}},
-      "player 4": {announce: {name: "Solo 6", symbol: "Spade", canTalk: true}},
+      "player 4": {announce: {name: "Solo 6", symbol: "Spade", canTalk: true}}
     }
   }), "player 2", "getNextPlayerFollowingAnnounces #7");
 
@@ -119,7 +119,7 @@ test("getNextPlayerFollowingAnnounces", function(){
       "player 1": {announce: {name: "Trou", canTalk: true}},
       "player 2": {announce: {name: "Bouche-trou", canTalk: true}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), "player 2", "getNextPlayerFollowingAnnounces #9");
 });
@@ -135,7 +135,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {}},
       "player 2": {announce: {}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Premier",
@@ -159,7 +159,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Premier"}},
       "player 2": {announce: {}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Passer",
@@ -183,7 +183,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Premier"}},
       "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Passer",
@@ -208,7 +208,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Passer"}},
       "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Passer",
@@ -233,7 +233,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Premier"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Passer",
@@ -257,7 +257,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Passer"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Passer",
@@ -280,7 +280,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Premier"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), [
     "Passer",
@@ -303,7 +303,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Premier"}},
       "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), [
     "Passer",
@@ -328,7 +328,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Trou"}},
       "player 2": {announce: {name: "Bouche-trou"}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Trou",
@@ -348,7 +348,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Trou"}},
       "player 2": {announce: {name: "Bouche-trou"}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Trou",
@@ -368,7 +368,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Trou"}},
       "player 2": {announce: {name: "Bouche-trou"}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Bouche-trou",
@@ -388,7 +388,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Trou"}},
       "player 2": {announce: {name: "Bouche-trou"}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), [
     "Passer",
@@ -408,7 +408,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Solo 6", symbol: "Spade"}},
       "player 2": {announce: {name: "Emballage 8", symbol: "Heart"}},
       "player 3": {announce: {name: "Emballage 8", symbol: "Heart"}},
-      "player 4": {announce: {name: "Solo 6", symbol: "Club"}},
+      "player 4": {announce: {name: "Solo 6", symbol: "Club"}}
     }
   }), [
     "Emballer",
@@ -424,7 +424,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Solo 6", symbol: "Spade"}},
       "player 2": {announce: {name: "Emballage 8", symbol: "Heart"}},
       "player 3": {announce: {name: "Emballage 8", symbol: "Heart"}},
-      "player 4": {announce: {name: "Solo 6", symbol: "Club"}},
+      "player 4": {announce: {name: "Solo 6", symbol: "Club"}}
     }
   }), [
     "Enchérir",
@@ -439,7 +439,7 @@ test("getAvailableAnnounces",  function() {
       "player 1": {announce: {name: "Passer"}},
       "player 2": {announce: {name: "Emballage 13", symbol: "Heart"}},
       "player 3": {announce: {name: "Emballage 13", symbol: "Heart"}},
-      "player 4": {announce: {name: "Solo 8", symbol: "Club"}},
+      "player 4": {announce: {name: "Solo 8", symbol: "Club"}}
     }
   }), ["Passer"], "getAvailableAnnounces #15");
 
@@ -454,7 +454,7 @@ test("getComputedState", function(){
       "player 1": {announce: {}},
       "player 2": {announce: {}},
       "player 3": {announce: {}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), 1, "getComputedState #1");
   equal(partie.getComputedState.call({
@@ -464,7 +464,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Solo 6"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {}},
+      "player 4": {announce: {}}
     }
   }), 1, "getComputedState #2");
   equal(partie.getComputedState.call({
@@ -474,7 +474,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Premier"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), 1, "getComputedState #3");
   equal(partie.getComputedState.call({
@@ -484,7 +484,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Trou", holeConfirmed: false}},
       "player 2": {announce: {name: "Bouche-trou", holeConfirmed: false}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), 2, "getComputedState #4");
   equal(partie.getComputedState.call({
@@ -494,7 +494,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Petite misère"}},
       "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), 3, "getComputedState #5");
   equal(partie.getComputedState.call({
@@ -504,7 +504,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Petite misère"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), 4, "getComputedState #6");
   equal(partie.getComputedState.call({
@@ -514,7 +514,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Abondance 9", symbol: "Diamond"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), 5, "getComputedState #7");
   equal(partie.getComputedState.call({
@@ -524,7 +524,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Emballage 8", symbol: "Heart"}},
       "player 2": {announce: {name: "Emballage 8", symbol: "Heart"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), 5, "getComputedState #8");
   equal(partie.getComputedState.call({
@@ -534,7 +534,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Trou", holeConfirmed: true}},
       "player 2": {announce: {name: "Bouche-trou", holeConfirmed: true}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), 5, "getComputedState #9");
   equal(partie.getComputedState.call({
@@ -544,7 +544,7 @@ test("getComputedState", function(){
       "player 1": {announce: {name: "Passer"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
-      "player 4": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), 6, "getComputedState #10");
   equal(partie.getComputedState.call({
@@ -554,7 +554,7 @@ test("getComputedState", function(){
       "player 1": {cards: partie.players["player 1"].cards},
       "player 2": {cards: partie.players["player 2"].cards},
       "player 3": {cards: partie.players["player 3"].cards},
-      "player 4": {cards: partie.players["player 4"].cards},
+      "player 4": {cards: partie.players["player 4"].cards}
     }
   }), 4, "getComputedState #11");
 
@@ -568,7 +568,7 @@ test("getComputedState", function(){
       "player 1": {cards: partie.players["player 1"].cards},
       "player 2": {cards: partie.players["player 2"].cards},
       "player 3": {cards: partie.players["player 3"].cards},
-      "player 4": {cards: partie.players["player 4"].cards},
+      "player 4": {cards: partie.players["player 4"].cards}
     }
   }), 4, "getComputedState #12");
 
@@ -580,7 +580,7 @@ test("getComputedState", function(){
       "player 1": {cards: partie.players["player 1"].cards},
       "player 2": {cards: partie.players["player 2"].cards},
       "player 3": {cards: partie.players["player 3"].cards},
-      "player 4": {cards: partie.players["player 4"].cards},
+      "player 4": {cards: partie.players["player 4"].cards}
     }
   }), 5, "getComputedState #13");
   equal(partie.getComputedState.call({
@@ -590,7 +590,7 @@ test("getComputedState", function(){
       "player 1": {cards: partie.players["player 1"].cards},
       "player 2": {cards: partie.players["player 2"].cards},
       "player 3": {cards: partie.players["player 3"].cards},
-      "player 4": {cards: partie.players["player 4"].cards},
+      "player 4": {cards: partie.players["player 4"].cards}
     }
   }), 5, "getComputedState #14");
 
@@ -605,7 +605,7 @@ test("getComputedState", function(){
       "player 1": {cards: partie.players["player 1"].cards},
       "player 2": {cards: partie.players["player 2"].cards},
       "player 3": {cards: partie.players["player 3"].cards},
-      "player 4": {cards: partie.players["player 4"].cards},
+      "player 4": {cards: partie.players["player 4"].cards}
     }
   }), 6, "getComputedState #15");
 });
@@ -655,7 +655,7 @@ test("play", function(){
         "player 1": {announce: {}},
         "player 2": {announce: {}},
         "player 3": {announce: {}},
-        "player 4": {announce: {}},
+        "player 4": {announce: {}}
       }
     }, "player 1", "Abondance 9")
   }, function(err){
@@ -672,7 +672,7 @@ test("play", function(){
         "player 1": {announce: {}},
         "player 2": {announce: {}},
         "player 3": {announce: {}},
-        "player 4": {announce: {}},
+        "player 4": {announce: {}}
       }
     }, "player 1", "Abondance 9", "nimporte quoi")
   }, function(err){
@@ -689,7 +689,7 @@ test("play", function(){
         "player 1": {cards: partie.players["player 1"].cards, announce: {}},
         "player 2": {announce: {}},
         "player 3": {announce: {}},
-        "player 4": {announce: {}},
+        "player 4": {announce: {}}
       }
     }, "player 1", "Abondance 9", "Diamond")
   }, function(err){
@@ -715,7 +715,7 @@ test("play", function(){
         "player 1": {announce: {name: "Solo 6", symbol: "Club"}},
         "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
         "player 3": {announce: {name: "Passer"}},
-        "player 4": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}}
       }
     }, "player 1", "Emballer")
   }, function(err){
@@ -732,7 +732,7 @@ test("play", function(){
         "player 1": {announce: {name: "Solo 6", symbol: "Club"}},
         "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
         "player 3": {announce: {name: "Passer"}},
-        "player 4": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}}
       }
     }, "player 1", "Emballer", 1)
   }, function(err){
@@ -749,7 +749,7 @@ test("play", function(){
         "player 1": {announce: {name: "Solo 6", symbol: "Club"}},
         "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
         "player 3": {announce: {name: "Passer"}},
-        "player 4": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}}
       }
     }, "player 1", "Emballer", "nimporte quoi")
   }, function(err){
@@ -766,7 +766,7 @@ test("play", function(){
         "player 1": {announce: {name: "Solo 6", symbol: "Club"}},
         "player 2": {announce: {name: "Solo 6", symbol: "Heart"}},
         "player 3": {announce: {name: "Passer"}},
-        "player 4": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}}
       }
     }, "player 2", "Emballer", "Club")
   }, function(err){
@@ -783,7 +783,7 @@ test("play", function(){
         "player 1": {announce: {name: "Solo 6", symbol: "Heart"}},
         "player 2": {announce: {name: "Solo 6", symbol: "Club"}},
         "player 3": {announce: {name: "Passer"}},
-        "player 4": {announce: {name: "Passer"}},
+        "player 4": {announce: {name: "Passer"}}
       }
     }, "player 2", "Emballer", "Heart")
   }, function(err){

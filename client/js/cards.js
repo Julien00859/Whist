@@ -1,20 +1,6 @@
 var symbols = ["Heart","Diamond","Club","Spade"];
 var names = ["Two","Three","Four","Five","Six","Seven","Heigh","Nine","Ten","Valet","Queen","King","As"];
 
-var Card = function Card(symbol, name) {
-  if (_.contains(symbols, symbol) && _.contains(names, name)) {
-    this.value = names.indexOf(name) + 2;
-    this.name = name;
-    this.symbol = symbol;
-  } else {
-    throw "Unknown card " + symbol + " " + name;
-  }
-}
-Card.prototype.toString = function toString() {
-  var symbols = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
-  return symbols[this.symbol] + (this.value < 11 ? this.value : this.name[0]);
-}
-
 var HiddenCard = function HiddenCard() {
   this.value = 0;
   this.name = "Hidden";
@@ -23,6 +9,21 @@ var HiddenCard = function HiddenCard() {
 HiddenCard.prototype.toString = function toString() {
   return "??";
 }
+
+var Card = function Card(symbol, name) {
+  if (_.contains(symbols, symbol) && _.contains(names, name)) {
+    this.value = names.indexOf(name) + 2;
+    this.name = name;
+    this.symbol = symbol;
+  } else {
+    throw new Error("Unknown card " + symbol + " " + name);
+  }
+}
+Card.prototype.toString = function toString() {
+  var symbols = {"Heart":"♥","Spade":"♠","Diamond":"♦","Club":"♣"};
+  return symbols[this.symbol] + (this.value < 11 ? this.value : this.name[0]);
+}
+
 
 // Create a deck with cards given or all cards
 var Cards = function Cards(cards) {
@@ -53,11 +54,8 @@ Cards.prototype.pull = function pull(i, n) {
 
 // Get the given card from the deck
 Cards.prototype.get = function get(card) {
-  if (this.contains(card)) {
-    return this.pull(this.cards.indexOf(card), 1)[0];
-  } else {
-    throw "CardNotFound";
-  }
+  for (var c in this.cards) if (_.isMatch(this.cards[c], card)) return this.cards.splice(c, 1)[0];
+  throw "CardNotFound";
 }
 
   // Append one or many cards at the end
@@ -121,7 +119,8 @@ var getCardsFromString = function getCardsFromString(str) {
   str = str.split(" ");
 
   for (var i in str) {
-    cards.push(new Card(symbols[str[i][0]], names[str[i].slice(1)]));
+    if (str[i][0] in symbols && str[i].slice(1) in names) cards.push(new Card(symbols[str[i][0]], names[str[i].slice(1)]));
+    else throw new Error("ParseError");
   }
   return cards.length > 1 ? cards : cards[0];
 }

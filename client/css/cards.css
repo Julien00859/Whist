@@ -1,60 +1,65 @@
 .cards {
   display: inline-block;
   background-image: url("../img/cards.png");
+  zoom: 0.3;
+  height: 243px;
+  width: 167px;
 }
 
-.cards.♥2 {}
-.cards.♥3 {}
-.cards.♥4 {}
-.cards.♥5 {}
-.cards.♥6 {}
-.cards.♥7 {}
-.cards.♥8 {}
-.cards.♥9 {}
-.cards.♥10 {}
-.cards.♥v {}
-.cards.♥D {}
-.cards.♥R {}
-.cards.♥A {}
+.cards.♥2 {background-position: 2012px 730px}
+.cards.♥3 {background-position: 1845px 730px}
+.cards.♥4 {background-position: 1677px 730px}
+.cards.♥5 {background-position: 1509px 730px}
+.cards.♥6 {background-position: 1342px 730px}
+.cards.♥7 {background-position: 1174px 730px}
+.cards.♥8 {background-position: 1007px 730px}
+.cards.♥9 {background-position: 839px 730px}
+.cards.♥10 {background-position: 671px 730px}
+.cards.♥V {background-position: 503px 730px}
+.cards.♥Q {background-position: 335px 730px}
+.cards.♥K {background-position: 167px 730px}
+.cards.♥A {background-position: 0 730px}
 
-.cards.♠2 {}
-.cards.♠3 {}
-.cards.♠4 {}
-.cards.♠5 {}
-.cards.♠6 {}
-.cards.♠7 {}
-.cards.♠8 {}
-.cards.♠9 {}
-.cards.♠10 {}
-.cards.♠v {}
-.cards.♠D {}
-.cards.♠R {}
-.cards.♠A {}
+.cards.♠2 {background-position: 2012px 486px}
+.cards.♠3 {background-position: 1845px 486px}
+.cards.♠4 {background-position: 1677px 486px}
+.cards.♠5 {background-position: 1509px 486px}
+.cards.♠6 {background-position: 1342px 486px}
+.cards.♠7 {background-position: 1174px 486px}
+.cards.♠8 {background-position: 1007px 486px}
+.cards.♠9 {background-position: 839px 486px}
+.cards.♠10 {background-position: 671px 486px}
+.cards.♠V {background-position: 503px 486px}
+.cards.♠Q {background-position: 335px 486px}
+.cards.♠K {background-position: 167px 486px}
+.cards.♠A {background-position: 0 486px}
 
-.cards.♦2 {}
-.cards.♦3 {}
-.cards.♦4 {}
-.cards.♦5 {}
-.cards.♦6 {}
-.cards.♦7 {}
-.cards.♦8 {}
-.cards.♦9 {}
-.cards.♦10 {}
-.cards.♦v {}
-.cards.♦D {}
-.cards.♦R {}
-.cards.♦A {}
+.cards.♦2 {background-position: 2012px 974px}
+.cards.♦3 {background-position: 1845px 974px}
+.cards.♦4 {background-position: 1677px 974px}
+.cards.♦5 {background-position: 1509px 974px}
+.cards.♦6 {background-position: 1342px 974px}
+.cards.♦7 {background-position: 1174px 974px}
+.cards.♦8 {background-position: 1007px 974px}
+.cards.♦9 {background-position: 839px 974px}
+.cards.♦10 {background-position: 671px 974px}
+.cards.♦V {background-position: 503px 974px}
+.cards.♦Q {background-position: 335px 974px}
+.cards.♦K {background-position: 167px 974px}
+.cards.♦A {background-position: 0 974px}
 
-.cards.♣2 {}
-.cards.♣3 {}
-.cards.♣4 {}
-.cards.♣5 {}
-.cards.♣6 {}
-.cards.♣7 {}
-.cards.♣8 {}
-.cards.♣9 {}
-.cards.♣10 {}
-.cards.♣v {}
-.cards.♣D {}
-.cards.♣R {}
-.cards.♣A {}
+.cards.♣2 {background-position: 2011px 1px}
+.cards.♣3 {background-position: 1844px 1px}
+.cards.♣4 {background-position: 1677px 1px}
+.cards.♣5 {background-position: 1509px 1px}
+.cards.♣6 {background-position: 1342px 1px}
+.cards.♣7 {background-position: 1174px 1px}
+.cards.♣8 {background-position: 1007px 1px}
+.cards.♣9 {background-position: 839px 1px}
+.cards.♣10 {background-position: 671px 1px}
+.cards.♣V {background-position: 503px 1px}
+.cards.♣Q {background-position: 335px 1px}
+.cards.♣K {background-position: 167px 1px}
+.cards.♣A {background-position: 0 1px}
+
+.cards.hidden {background-position: 1844px 244px}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="main">
+<html ng-app="whist">
 	<head>
 		<title>Play Carts !</title>
 		<meta charset=utf-8>
@@ -24,46 +24,23 @@
 		<script src="js/main.js" type="text/javascript"></script>
 		<script src="js/cards.js" type="text/javascript"></script>
 </head>
-<body ng-controller="fieldsController as ctrl">
+<body ng-controller="Controller as ctrl">
 
-  <form name=form_nickname novalidate ng-submit=ctrl.register() ng-hide=ctrl.me.nicknameValidated>
+  <form name=form_nickname novalidate ng-submit=ctrl.register() ng-hide=ctrl.nicknameValidated>
 		<label for=nickname>
 			Nickname:
-			<input name=nickname type=text minlength=3 required ng-model=ctrl.me.nickname ng-model-options="{ updateOn: 'default blur' }" ng-disable=ctrl.me.nicknameValidated>
+			<input name=nickname type=text minlength=3 required ng-model=ctrl.nickname ng-model-options="{ updateOn: 'default blur' }" ng-disable=ctrl.nicknameValidated>
 		</label>
-		<input type=submit ng-disabled=ctrl.me.nicknameValidated>
+		<input type=submit ng-disabled=ctrl.nicknameValidated>
 	</form>
 
-	<form name=form_chat novalidate ng-submit=ctrl.sendChatMessage() ng-show="!(!ctrl.me.nicknameValidated || ctrl.game.started)">
-		<p ng-repeat="message in ctrl.message"><strong ng-bind=message.sender></strong>: {{message.msg}}</p>
-		<textarea name=chat_message ng-model=ctrl.chatMessage ng-model-options="{updateOn: 'default blur'}" ng-disable=ctrl.game.started></textarea>
-		<input type=submit ng-disabled=ctrl.game.started>
-	</form>
+  <div ng-show="ctrl.game.playersList.length > 0 &amp;&amp; ctrl.game.playersList.length < 4">
+    <p>Awaiting players... [{{ctrl.game.playersList.length}}/4]</p>
+    <ul><li ng-repeat="player in ctrl.game.playersList" ng-bind="player"></li></ul>
+  </div>
 
-	<form name=form_announce_bid novalidate ng-submit=ctrl.sendAnnounce() ng-show="ctrl.game.state < 4">
-		<select required ng-model=ctrl.selectedAnnounce ng-disabled="ctrl.me.nickname != ctrl.game.currentPlayer">
-			<option ng-repeat="announce in ctrl.availableAnnounces" value={{announce}}>{{announce}}</option>
-		</select>
-		<select ng-model=ctrl.selectedSymbol ng-show="ctrl.needSymbolForm(ctrl.selectedAnnounce)" ng-disabled="ctrl.me.nickname != ctrl.game.currentPlayer">
-			<option ng-repeat="symbol in ctrl.symbols">{{symbol}}</option>
-		</select>
-		<input type=submit ng-disable="ctrl.me.nickname != ctrl.game.currentPlayer">
-	</form>
-
-	<p ng-show=ctrl.game.state>State: {{ctrl.game.state}} | Current player: {{ctrl.game.currentPlayer}} | Trump: {{ctrl.game.trump}}</p>
-	<section ng-repeat="pl in ctrl.game.players">
-		<p><strong ng-bind=pl></strong></p>
-		<p ng-show=ctrl.players[pl].announce>Annonce: {{ctrl.players[pl].announce}}</p>
-		<p ng-show=ctrl.players[pl].symbol>Symbole: <em ng-bind="ctrl.players[pl].symbol"></em></p>
-		<form name=form_cards novalidate ng-submit=ctrl.playCard(pl) ng-show=ctrl.players[pl].cards>
-			<select ng-model=ctrl.players[pl].selectedCard>
-				<option ng-repeat="card in ctrl.players[pl].cards.cards track by $index">{{card.toString()}}</option>
-			</select>
-			<input type=submit ng-show="!(ctrl.me.nickname != pl || !(ctrl.game.state == 4 || ctrl.game.state == 5))" ng-disabled="ctrl.me.nickname != ctrl.game.currentPlayer">
-		</form>
-	</section>
-	<section ng-show="ctrl.game.state == 5">
-		<p ng-show=ctrl.game.currentFold>Current fold: {{ctrl.game.currentFold.toString()}}</p>
-	</section>
+  <section ng-repeat="player in ctrl.game.playersList" ng-show="ctrl.game.started">
+    <h1 ng-class="ctrl.getSideClass(player, ctrl.players[player].side)">{{player}}</h1>
+  </section>
 </body>
 </html>

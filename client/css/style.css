@@ -1,3 +1,80 @@
-body {
+* {
+  box-sizing: border-box;
+}
+
+html {
   font-family: Lato;
+  color: white;
+  background-image: url("../img/carpetPattern.png");
+  background-repeat: repeat;
+  background-color: inital;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+section {
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+}
+
+.leftSide .inner {
+  transform: rotate(90deg);
+}
+.topSide .inner {
+  transform: rotate(180deg);
+}
+.rightSide .inner {
+  transform: rotate(270deg);
+}
+.leftSide .inner {
+  transform: rotate(90deg);
+}
+
+h1 {
+  margin-bottom: 0;
+}
+
+.mirror {
+  color: rgba(255, 255, 255, 0.5);
+  transform: scaleY(-1);
+  position: relative;
+  top: 30px;
+}
+
+.bottomSide {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+}
+
+.leftSide {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  top: 33.33%;
+}
+
+.topSide {
+  position: absolute;
+  width: 100%;
+  top: 0;
+}
+
+.rightSide {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  top: 33.33%;
+  right: 0;
+}
+
+.activeSide {
+  font-style: italic;
 }

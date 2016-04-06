@@ -1,187 +1,95 @@
-// Module principale
+angular.module("whist", []).controller("Controller", function($scope, $timeout) {
+  var self = this;
 
-angular.module("main", []).controller("fieldsController", function($scope, $sce, $interval, $timeout) {
-  this.socket = io();
+  self.socket = io()
 
-  this.me = {
-    nickname: "",
-    nicknameValidated: false
-  }
+  self.players = {
+    playerX: {
+      cards: Cards(),
+      announce: "",
+      symbol: "",
+      folds: [Cards()],
+      side: ""
+    }
+  };
 
-  this.game = {
+  self.nickname = "";
+
+  self.nicknameValidated = false;
+
+  self.game = {
     started: false,
     trump: "",
-    players: [],
-    currentFold: new Cards([]),
-    currentPlayer: ""
-  }
+    playersList: [],
+    currentFold: Cards(),
+    currentPlayer: "",
+    state: 0
+  };
 
-  this.players = {
-    // playerX: {
-    //   nickname: "",
-    //   announce: "",
-    //   symbol: "",
-    //   cards: Cards([HiddenCard*13]),
-    //   folds: "",
-    //   lastFold: Cards(),
-    //   side: "left/top/right/bottom"
-    // }
-  }
+  self.symbols = symbols.slice();
 
-  this.message = [
-    // {
-    //   sender: "",
-    //   time: new Date(),
-    //   msg: ""
-    // }
-  ];
-
-  this.symbols = symbols.slice();
-
-  this.needSymbolForm = function needSymbolForm(announce) {
+  self.needSymbolForm = function needSymbolForm(announce) {
     return _.contains(["Solo", "Emballage", "Abondance"], announce);
+  };
+
+  self.register = function register() {
+    self.socket.emit("register", this.nickname);
   }
 
-  this.register = function register() {
-    $scope.ctrl.socket.emit("register", this.me.nickname);
-  }
+  self.socket.on("myerror", function(err){
+    alert(err);
+  });
 
-  this.sendChatMessage = function sendChatMessage() {
-    if ($scope.ctrl.chatMessage.trim().length > 0) {
-      $scope.ctrl.socket.emit("chat message", $scope.ctrl.chatMessage.trim());
-      $scope.ctrl.chatMessage = "";
-    }
-  }
-
-  this.sendAnnounce = function sendAnnounce() {
-    if (_.contains($scope.ctrl.availableAnnounces, $scope.ctrl.selectedAnnounce)) {
-      switch($scope.ctrl.game.state) {
-        case 1:
-        case 2:
-          if ($scope.ctrl.needSymbolForm($scope.ctrl.selectedAnnounce) && _.contains($scope.ctrl.symbols, $scope.ctrl.selectedSymbol))
-            $scope.ctrl.socket.emit("announce", $scope.ctrl.selectedAnnounce, $scope.ctrl.selectedSymbol);
-          else $scope.ctrl.socket.emit("announce", $scope.ctrl.selectedAnnounce);
-          break;
-        case 3:
-          if ($scope.ctrl.needSymbolForm($scope.ctrl.selectedAnnounce) && _.contains($scope.ctrl.symbols, $scope.ctrl.selectedSymbol))
-            $scope.ctrl.socket.emit("bid", $scope.ctrl.selectedAnnounce, $scope.ctrl.selectedSymbol);
-          else $scope.ctrl.socket.emit("bid", $scope.ctrl.selectedAnnounce);
-          break;
-      }
-    }
-  }
-
-  this.playCard = function playCard(player) {
-    if ($scope.ctrl.me.nickname == player) {
-      if ($scope.ctrl.players[player].cards.contains(getCardsFromString($scope.ctrl.players[player].selectedCard))) {
-        $scope.ctrl.socket.emit("play card", $scope.ctrl.players[player].selectedCard);
-      }
-    }
-  }
-
-  this.socket.on("nickname validation", function(nickname){
-    $scope.ctrl.me.nickname = nickname;
-    $scope.ctrl.me.nicknameValidated = true;
+  self.socket.on("nickname validation", function(nick){
+    self.nickname = nick;
+    self.nicknameValidated = true;
     $scope.$apply();
   });
 
-  this.socket.on("waiting room joined", function(players){
-    $scope.ctrl.game.players = players;
+  self.socket.on("waiting room joined", function(playersList){
+    self.game.playersList = playersList;
     $scope.$apply();
   });
 
-  this.socket.on("waiting room joined by", function(nickname){
-    if ($scope.ctrl.game.players.length < 4) $scope.ctrl.game.players.push(nickname);
+  self.socket.on("waiting room joined by", function(nick){
+    self.game.playersList.push(nick);
     $scope.$apply();
   });
 
-  this.socket.on("chat message", function(rawMsg){
-    $scope.ctrl.message.push({sender: rawMsg.sender, time: rawMsg.time, msg: rawMsg.msg});
-    $scope.$apply();
+  self.socket.on("game joined", function(srvMsg){
+    self.newNormalGame(srvMsg);
   });
+  self.newNormalGame = function newNormalGame(srvMsg) {
+    if (self.nicknameValidated) {
+      self.game.playersList = srvMsg.players;
 
-  this.socket.on("myerror", function(err) {
-    alert(err.msg);
-    switch (err.code) {
-      case 1:
-        socket.emit("register", prompt("Nickname"));
-    }
-  });
-
-  this.socket.on("game joined", function(rawMsg) {
-    $scope.ctrl.newNormalGame(rawMsg);
-  });
-
-  this.newNormalGame = function newNormalGame(rawMsg) {
-    if ($scope.ctrl.me.nicknameValidated) {
-      $scope.ctrl.game.players = rawMsg.players;
-
-      for (var i in $scope.ctrl.game.players) {
-        $scope.ctrl.players[$scope.ctrl.game.players[i]] = {
-          nickname: $scope.ctrl.game.players[i],
+      for (var i in self.game.players) {
+        self.players[self.game.playersList[i]] = {
           announce: undefined,
           myFriend: undefined,
-          cards: $scope.ctrl.game.players[i] == $scope.ctrl.me.nickname ? new Cards(getCardsFromString(rawMsg.cards)) : new Cards((new Array(13)).fill(new HiddenCard())),
-          folds: 0,
-          lastFold: undefined,
+          cards: self.game.playersList[i] == self.nickname ? new Cards(getCardsFromString(srvMsg.cards)) : new Cards((new Array(13)).fill(new HiddenCard())),
+          folds: [],
           // Je serai toujours en bas, les autres me suivront dans l'ordre horlogique
-          side: ["bottom","left","top","right"][($scope.ctrl.game.players.indexOf($scope.ctrl.game.players[i]) - $scope.ctrl.game.players.indexOf($scope.ctrl.me.nickname) + 4) % 4]
+          side: ["bottom","left","top","right"][(self.game.playersList.indexOf(self.game.playersList[i]) - self.game.playersList.indexOf(self.nickname) + 4) % 4]
         }
       }
-      $scope.ctrl.game.started = true;
+      self.game.started = true;
       $scope.$apply();
     } else {
       // Tant que le nom n'a pas été validé, on met en attente le lancement de la partie
-      $timeout($scope.ctrl.newNormalGame, 100, false, rawMsg);
+      console.log(this, "delayed");
+      $timeout(self.newNormalGame, 100, true, srvMsg);
     }
   }
 
-  this.socket.on("next turn", function(rawMsg){
-    $scope.ctrl.game.currentPlayer = rawMsg.currentPlayer;
-    $scope.ctrl.game.state = rawMsg.state;
-    $scope.ctrl.game.trump = rawMsg.trump;
-
-    if ($scope.ctrl.game.currentPlayer == $scope.ctrl.me.nickname) {
-      switch (rawMsg.state) {
-        case 1:
-        case 2:
-        case 3:
-          $scope.ctrl.availableAnnounces = rawMsg.availableAnnounces;
-          break;
-
-        default:
-
-      }
-    }
-    $scope.$apply();
-  });
-
-  this.socket.on("announces", function(announces){
-    $scope.ctrl.announces(announces)
-  });
-
-  this.announces = function announces(announces) {
-    if ($scope.ctrl.game.started) {
-      for (var ann in announces) {
-        $scope.ctrl.players[announces[ann].player].announce = announces[ann].announce;
-        $scope.ctrl.players[announces[ann].player].symbol = announces[ann].symbol;
-      }
-    } else {
-      // Tant que la partie n'est pas démarrée, on met la requête en attente
-      $timeout($scope.ctrl.announces, 100, false, announces);
+  self.getSideClass = function getSideClass(player, side){
+    return {
+      bottomSide: side == "bottom",
+      leftSide: side == "left",
+      topSide: side == "top",
+      rightSide: side == "right",
+      activeSide: player == self.game.currentPlayer
     }
   }
 
-  this.socket.on("card played", function(nick, strCard){
-    var card = getCardsFromString(strCard);
-    if ($scope.ctrl.game.currentFold.getLength < 4) $scope.ctrl.game.currentFold.add(card);
-    else {
-      $scope.ctrl.game.currentFold = new Cards([card]);
-    }
-    if (nick == $scope.ctrl.me.nickname) {
-      $scope.ctrl.players[nick].cards.get(card);
-    } else {
-      $scope.ctrl.players[nick].cards.pull(1);
-    }
-  });
 });

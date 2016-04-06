@@ -544,7 +544,7 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
                       this.state = nextState;
 
 
-                    } else throw new WhistError("Le joueur doit posséder au moins une carte du symbol donné")
+                    } else throw new WhistError("Le joueur doit posséder au moins une carte du symbol donné");
                   } else throw new WhistError("Le symbole n'existe pas");
                 } else throw new WhistError("Le symbole doit être défini et de type string");
               } else {
