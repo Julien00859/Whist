@@ -9,7 +9,6 @@ html {
   background-repeat: repeat;
   background-color: inital;
   padding: 0;
-  overflow: hidden;
 	height: 100%;
 	width: 100%;
 }
@@ -17,13 +16,19 @@ html {
 body {
   padding: 0;
   margin: 0;
-	height: 100%;;
+	height: 100%;
+  width: 100%;
 }
 
 section {
-  margin: 0 auto;
-  padding: 0;
   text-align: center;
+  margin: 0;
+  display: inline-block;
+  border: 1px solid white;
+}
+
+.inner {
+  border: 1px solid black;
 }
 
 .leftSide .inner {
@@ -34,9 +39,6 @@ section {
 }
 .rightSide .inner {
   transform: rotate(270deg);
-}
-.leftSide .inner {
-  transform: rotate(90deg);
 }
 
 h1 {
@@ -52,30 +54,28 @@ h1 {
 
 .bottomSide {
   position: absolute;
-  width: 100%;
   bottom: 0;
+  width: 50%;
+  height: calc(100% / 3);
 }
 
 .leftSide {
-  position: absolute;
-  width: 50%;
+  width: 25%;
   height: 100%;
-  left: 0;
-  top: 33.33%;
 }
 
 .topSide {
   position: absolute;
-  width: 100%;
   top: 0;
+  width: 50%;
+  height: calc(100% / 3);
 }
 
 .rightSide {
   position: absolute;
-  width: 50%;
-  height: 100%;
-  top: 33.33%;
   right: 0;
+  width: 25%;
+  height: 100%;
 }
 
 .activeSide {
@@ -89,7 +89,10 @@ h1 {
 	align-items: center;
 }
 .boxPli {
-	background-image: url(../img/bois.jpg);
-	width: 550px;
-	height: 336px;
+  background-image: url(../img/bois.jpg);
+  position: absolute;
+  top: calc(100% / 3);
+  left: 25%;
+	width: 50%;
+  height: calc(100% / 3);
 }
