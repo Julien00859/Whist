@@ -36,21 +36,19 @@ section {
 }
 .topSide .inner {
   transform: rotate(180deg);
+  height: 100%;
 }
 .rightSide .inner {
   transform: rotate(270deg);
 }
 
-h1 {
-  margin-bottom: 0;
-}
-
-.mirror {
+/*.mirror {
   color: rgba(255, 255, 255, 0.5);
   transform: scaleY(-1);
+  transform: rotate(180deg);
   position: relative;
   top: 30px;
-}
+}*/
 
 .bottomSide {
   position: absolute;
@@ -71,6 +69,10 @@ h1 {
   height: calc(100% / 3);
 }
 
+.topSide h1 {
+  transform: rotate(180deg);
+}
+
 .rightSide {
   position: absolute;
   right: 0;
@@ -78,7 +80,7 @@ h1 {
   height: 100%;
 }
 
-.activeSide {
+.activeSide h1 {
   font-style: italic;
 }
 .container {
