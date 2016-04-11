@@ -4,13 +4,13 @@ angular.module("whist", []).controller("Controller", function($scope, $timeout) 
   self.socket = io()
 
   self.players = {
-    playerX: {
-      cards: Cards(),
-      announce: "",
-      symbol: "",
-      folds: [Cards()],
-      side: ""
-    }
+    // playerX: {
+    //   cards: Cards(),
+    //   announce: "",
+    //   symbol: "",
+    //   folds: [Cards()],
+    //   side: ""
+    // }
   };
 
   self.nickname = "";
@@ -21,12 +21,12 @@ angular.module("whist", []).controller("Controller", function($scope, $timeout) 
     started: false,
     trump: "",
     playersList: [],
-    currentFold: Cards(),
+    currentFold: new Cards([]),
     currentPlayer: "",
     state: 0
   };
 
-  self.availableAnnounces = [];
+  self.availableAnnounces = ["Passer"];
 
   self.selectedAnnounce = undefined;
 
@@ -34,8 +34,8 @@ angular.module("whist", []).controller("Controller", function($scope, $timeout) 
 
   self.symbols = symbols.slice();
 
-  self.needSymbolForm = function needSymbolForm(announce) {
-    return _.contains(["Solo", "Emballage", "Abondance"], announce.split(" ")[0]);
+  self.needSymbolForm = function needSymbolForm() {
+    return !_.isUndefined(self.selectedAnnounce) && _.contains(["Solo", "Emballage", "Abondance", "Emballage"], self.selectedAnnounce.split(" ")[0]);
   };
 
   self.getSideClass = function getSideClass(player, side){
@@ -49,12 +49,22 @@ angular.module("whist", []).controller("Controller", function($scope, $timeout) 
   }
 
   self.register = function register() {
-    self.socket.emit("register", this.nickname);
+    self.socket.emit("register", self.nickname);
   }
 
   self.submitAnnounce = function submitAnnounce() {
-    if (self.needSymbolForm(ctrl.selectedAnnounce)) self.socket.emit("play", ctrl.selectedAnnounce, ctrl.selectedSymbol);
-    else self.socket.emit("play", ctrl.selectedAnnounce);
+    if (self.needSymbolForm(self.selectedAnnounce)) self.socket.emit("play", self.selectedAnnounce, self.selectedSymbol);
+    else self.socket.emit("play", self.selectedAnnounce);
+  }
+
+  self.sendCard = function sendCard(card) {
+    if (self.players[self.nickname].cards.contains(card)) {
+      if (self.game.currentPlayer == self.nickname) {
+        if (self.game.state > 3) {
+          self.socket.emit("play", card.toString());
+        }
+      }
+    }
   }
 
   self.socket.on("myerror", function(err){
@@ -109,20 +119,38 @@ angular.module("whist", []).controller("Controller", function($scope, $timeout) 
       self.players[srvAnn[i].player].announce = srvAnn[i].announce;
       self.players[srvAnn[i].player].symbol = srvAnn[i].symbol;
     }
+    $scope.$apply();
   });
 
   self.socket.on("next turn", function(srvMsg){
     self.game.currentPlayer = srvMsg.currentPlayer;
     self.game.state = srvMsg.state;
-    switch (self.game.state) {
-      case 1:
-      case 2:
-      case 3:
-        self.availableAnnounces = srvMsg.availableAnnounces;
-        console.log(self.availableAnnounces);
-
-    }
     $scope.$apply();
   });
 
+  self.socket.on("availableAnnounces", function(announces){
+    self.availableAnnounces = announces;
+    $scope.$apply();
+  });
+
+  self.socket.on("card played", function(player, cardStr){
+    if (player == self.nickname) {
+      self.game.currentFold.add(self.players[player].cards.get(getCardsFromString(cardStr)));
+    } else {
+      self.players[player].cards.pull(1);
+      self.game.currentFold.add(getCardsFromString(cardStr));
+    }
+  });
+
+  self.socket.on("turn won by", function(player){
+    self.players[player].folds.push(self.game.currentFold.pull(4));
+  });
+
+  self.socket.on("card retrieved", function(player){
+    self.players[player].cards.pull(1);
+  });
+
+  self.socket.on("trump", function(trump){
+    self.game.trump = trump;
+  });
 });

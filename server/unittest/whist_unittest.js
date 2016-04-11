@@ -76,7 +76,7 @@ test("getNextPlayerFollowingAnnounces", function(){
   equal(partie.getNextPlayerFollowingAnnounces.call({
     playersList: partie.playersList,
     players:{
-      "player 1": {announce: {name: "Premier", canTalk: true}},
+      "player 1": {announce: {name: "Premier"}},
       "player 2": {announce: {name: "Passer"}},
       "player 3": {announce: {name: "Passer"}},
       "player 4": {announce: {name: "Passer"}}
@@ -86,10 +86,10 @@ test("getNextPlayerFollowingAnnounces", function(){
   equal(partie.getNextPlayerFollowingAnnounces.call({
     playersList: partie.playersList,
     players:{
-      "player 1": {announce: {name: "Grand chelem", canTalk: true}},
-      "player 2": {announce: {name: "Grande misère", canTalk: true}},
-      "player 3": {announce: {name: "Abondance 9", canTalk: true}},
-      "player 4": {announce: {name: "Passer", canTalk: true}}
+      "player 1": {announce: {name: "Grand chelem"}},
+      "player 2": {announce: {name: "Grande misère"}},
+      "player 3": {announce: {name: "Abondance 9"}},
+      "player 4": {announce: {name: "Passer"}}
     }
   }), "player 3", "getNextPlayerFollowingAnnounces #5");
 
@@ -98,8 +98,8 @@ test("getNextPlayerFollowingAnnounces", function(){
     players:{
       "player 1": {announce: {name: "Passer"}},
       "player 2": {announce: {name: "Passer"}},
-      "player 3": {announce: {name: "Solo 6", symbol: "Heart", canTalk: true}},
-      "player 4": {announce: {name: "Solo 6", symbol: "Spade", canTalk: true}}
+      "player 3": {announce: {name: "Solo 6", symbol: "Heart"}},
+      "player 4": {announce: {name: "Solo 6", symbol: "Spade"}}
     }
   }), "player 4", "getNextPlayerFollowingAnnounces #6");
 
@@ -108,20 +108,30 @@ test("getNextPlayerFollowingAnnounces", function(){
     players:{
       "player 1": {announce: {name: "Emballage 8", symbol: "Club", canTalk: false}},
       "player 2": {announce: {name: "Emballage 8", symbol: "Club", canTalk: true}},
-      "player 3": {announce: {name: "Solo 6", symbol: "Heart", canTalk: true}},
-      "player 4": {announce: {name: "Solo 6", symbol: "Spade", canTalk: true}}
+      "player 3": {announce: {name: "Solo 6", symbol: "Heart"}},
+      "player 4": {announce: {name: "Solo 6", symbol: "Spade"}}
     }
   }), "player 2", "getNextPlayerFollowingAnnounces #7");
 
   equal(partie.getNextPlayerFollowingAnnounces.call({
     playersList: partie.playersList,
     players:{
-      "player 1": {announce: {name: "Trou", canTalk: true}},
-      "player 2": {announce: {name: "Bouche-trou", canTalk: true}},
+      "player 1": {announce: {name: "Trou", holeConfirmed: false}},
+      "player 2": {announce: {name: "Bouche-trou", holeConfirmed: false}},
       "player 3": {announce: {name: "Passer"}},
       "player 4": {announce: {name: "Passer"}}
     }
   }), "player 2", "getNextPlayerFollowingAnnounces #9");
+
+  equal(partie.getNextPlayerFollowingAnnounces.call({
+    playersList: partie.playersList,
+    players:{
+      "player 1": {announce: {name: "Trou", holeConfirmed: false}},
+      "player 2": {announce: {name: "Bouche-trou", holeConfirmed: true}},
+      "player 3": {announce: {name: "Passer"}},
+      "player 4": {announce: {name: "Passer"}}
+    }
+  }), "player 1", "getNextPlayerFollowingAnnounces #10");
 });
 
 test("getAvailableAnnounces",  function() {
@@ -780,8 +790,8 @@ test("play", function(){
       currentPlayer: "player 2",
       state: 3,
       players: {
-        "player 1": {announce: {name: "Solo 6", symbol: "Heart"}},
-        "player 2": {announce: {name: "Solo 6", symbol: "Club"}},
+        "player 1": {announce: {name: "Solo 6", symbol: "Heart"}, cards: partie.players["player 1"].cards},
+        "player 2": {announce: {name: "Solo 6", symbol: "Club"}, cards: partie.players["player 2"].cards},
         "player 3": {announce: {name: "Passer"}},
         "player 4": {announce: {name: "Passer"}}
       }

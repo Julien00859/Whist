@@ -44,15 +44,15 @@
   <section ng-repeat="player in ctrl.game.playersList" ng-show="ctrl.game.started" ng-class="ctrl.getSideClass(player, ctrl.players[player].side)">
 		<div class=inner>
     	<h1>{{player}}</h1>
-      <div ng-repeat="card in ctrl.players[player].cards.cards track by $index" class="cards {{card.toString()}}">{{card.toString()}}</div>
+      <div ng-repeat="card in ctrl.players[player].cards.cards track by $index" class="cards {{card.toString()}}" ng-click="ctrl.sendCard(card);">{{card.toString()}}</div>
 			<div ng-show="ctrl.players[player].side == 'bottom'">
 				<form name=announces novalidate ng-show="ctrl.game.state <= 3" ng-submit="ctrl.submitAnnounce();">
 					<fieldset>
 						<legend>Announces</legend>
-						<select ng-model="ctrl.selectedAnnounce">
+						<select ng-model="ctrl.selectedAnnounce" ng-disabled="ctrl.game.currentPlayer != ctrl.nickname">
 							<option ng-repeat="ann in ctrl.availableAnnounces" value="{{ann}}" required>{{ann}}</option>
 						</select>
-						<select ng-show="ctrl.needSymbolForm('{{ctrl.selectedAnnounce}}')" ng-model="ctrl.selectedSymbol">
+						<select ng-show="ctrl.needSymbolForm()" ng-model="ctrl.selectedSymbol" ng-disabled="ctrl.game.currentPlayer != ctrl.nickname">
 							<option ng-repeat="sym in ctrl.symbols" value="{{sym}}">{{sym}}</option>
 						</select>
 						<input type=submit value=Announce ng-disabled="ctrl.game.currentPlayer != ctrl.nickname">
@@ -63,8 +63,17 @@
   </section>
 
 	<div class="container" ng-show="ctrl.game.started">
-		<section class="boxPli">
-		</section>
+    <div class="infos">
+      <fieldset>
+        <legend>Infos</legend>
+        <p ng-show="ctrl.game.trump">Atoux: {{ctrl.game.trump}}</p>
+        <p ng-repeat="player in ctrl.game.playersList" ng-show="ctrl.players[player].announce">{{player}}: {{ctrl.players[player].announce}} <span ng-show="ctrl.players[player].symbol">({{ctrl.players[player].symbol}})</span>
+      </fieldset>
+    </div>
+    <div class="boxPli">
+      <div ng-repeat="card in ctrl.game.currentFold.cards track by $index" class="cards {{card.toString()}}">{{card.toString()}}</div>
+		</div>
 	</div>
+  <!-- Developed by Julien Castiaux https://www.github.com/Whist/ -->
 </body>
 </html>

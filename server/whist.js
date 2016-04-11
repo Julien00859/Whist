@@ -216,7 +216,7 @@ Whist.prototype.resetGame = function resetGame() {
       myFriend: undefined, // L'ami d'annonce (Emballage, Trou & Bouche-trou)
       holeConfirmed: undefined // Si lors d'un Trou, le Trou ou le Bouche-trou a confirmé son annonce
     }
-    this.players[pl].folds = undefined; // Les plis gagnés par le joueur
+    this.players[pl].folds = []; // Les plis gagnés par le joueur
     this.players[pl].cards = undefined; // La main du joueur
   }
 
@@ -257,7 +257,7 @@ Whist.prototype.getNextPlayerFollowingAnnounces = function getNextPlayerFollowin
 
   // Sinon on retourne celui qui a l'annonce la plus faible
   return _.chain(self.playersList).filter(function(pl){
-    return self.players[pl].announce.name !== "Passer" && self.players[pl].announce.canTalk
+    return self.players[pl].announce.name !== "Passer" && (_.isUndefined(self.players[pl].announce.canTalk) || self.players[pl].announce.canTalk) && (_.isUndefined(self.players[pl].announce.holeConfirmed) || !self.players[pl].announce.holeConfirmed || self.players[pl].announce.holeConfirmed == self.players[self.players[pl].announce.myFriend].announce.holeConfirmed);
   }).sortBy(function(pl){
     var announceStrength = Object.keys(ANNOUNCES).reverse().indexOf(self.players[pl].announce.name);
     var symbolStrength = (self.players[pl].announce.symbol) ? cardsLib.symbols.slice().reverse().indexOf(self.players[pl].announce.symbol) / 4 : 0
@@ -357,9 +357,10 @@ Whist.prototype.getComputedState = function getComputedState() {
 }
 
 Whist.prototype.dealWithAnnounce = function dealWithAnnounce(announce, symbol) {
+  var self = this;
 
   // On a un trou qui se désiste
-  if (ANNOUNCES[this.players[this.currentPlayer].announce.name].type == "Trou" && this.players[this.currentPlayer].announce.name != announce) {
+  if (!_.isUndefined(this.players[this.currentPlayer].announce.name) && ANNOUNCES[this.players[this.currentPlayer].announce.name].type == "Trou" && this.players[this.currentPlayer].announce.name != announce) {
     var myFriend = this.players[this.currentPlayer].announce.myFriend;
     this.players[this.currentPlayer].announce.myFriend = undefined;
 
@@ -367,10 +368,11 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(announce, symbol) {
     this.players[myFriend].announce.myFriend = undefined;
   }
 
-  switch(ANNOUNCE[announce].type) {
+  switch(ANNOUNCES[announce].type) {
     case "Solo":
     case "Abondance":
       this.players[this.currentPlayer].announce.symbol = symbol;
+    case "Passer":
     case "Misère":
     case "Piccolo":
     case "Chelem":
@@ -379,7 +381,7 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(announce, symbol) {
 
     case "Emballage":
       var soloWithinTheSameSymbol = _.chain(this.playersList).without(this.currentPlayer).filter(function(pl){
-        return this.players[pl].announce.name == "Solo 6" && this.players[pl].announce.symbol == symbol;
+        return self.players[pl].announce.name == "Solo 6" && self.players[pl].announce.symbol == symbol;
       }).first().value();
 
       if (!_.isUndefined(soloWithinTheSameSymbol)) {
@@ -405,7 +407,10 @@ Whist.prototype.dealWithAnnounce = function dealWithAnnounce(announce, symbol) {
 Whist.prototype.prepareGameToPlay = function prepareGameToPlay() {
   this.currentPlayer = _.first(this.playersList);
 
+  var self = this;
+
   var playersWithAnnounce = _.filter(this.playersList, function(pl){return self.players[pl].announce.name != "Passer"});
+  console.log(playersWithAnnounce);
   switch (playersWithAnnounce.length) {
     case 1:
       var player = playersWithAnnounce[0];
@@ -421,46 +426,55 @@ Whist.prototype.prepareGameToPlay = function prepareGameToPlay() {
     case 2:
       if (ANNOUNCES[this.players[playersWithAnnounce[0]].announce.name].type == "Emballage") {
         this.game.trump = this.players[playersWithAnnounce[0]].announce.symbol;
-      } else if (this.players[playersWithAnnounce[0].announce.name == "Bouche-trou"]){
+      } else if (this.players[playersWithAnnounce[0]].announce.name == "Bouche-trou"){
         this.currentPlayer = playersWithAnnounce[0];
-      } else {
+      } else if (this.players[playersWithAnnounce[0]].announce.name == "Trou"){
         this.currentPlayer = playersWithAnnounce[1];
+      } else {
+        throw new Error("Internal Exception");
       }
       break;
   }
 }
 
 Whist.prototype.dealWithBids = function dealWithBids(bid, symbol) {
-  switch (bif) {
+  var self = this;
+
+  switch (bid) {
     case "Passer":
       if (!_.isUndefined(this.players[this.currentPlayer].announce.myFriend)) {
-        if (this.players[this.currentPlayer].announce.wasSolo) {
+        if (this.players[this.currentPlayer].announce.wasSolo || ANNOUNCES[this.players[this.currentPlayer].announce.name].folds < 10 ) {
           this.players[this.currentPlayer].announce.name = "Passer";
+          this.players[this.currentPlayer].announce.symbol = undefined;
           this.players[this.players[this.currentPlayer].announce.myFriend].announce.name = "Passer";
+          this.players[this.players[this.currentPlayer].announce.myFriend].announce.symbol = undefined;
         } else {
           this.players[this.currentPlayer].announce.canTalk = false;
           this.players[this.players[this.currentPlayer].announce.myFriend].announce.canTalk = true;
         }
       } else {
         this.players[this.currentPlayer].announce.name = "Passer";
+        this.players[this.currentPlayer].announce.symbol = undefined;
       }
       break;
 
     case "Enchérir":
-      this.players[this.currentPlayer].announce.name = ANNOUNCE[this.players[this.currentPlayer].announce.name].next;
+      this.players[this.currentPlayer].announce.name = ANNOUNCES[this.players[this.currentPlayer].announce.name].next;
+      if (!_.isUndefined(this.players[this.currentPlayer].announce.myFriend)) this.players[this.players[this.currentPlayer].announce.myFriend].announce.name = this.players[this.currentPlayer].announce.name
       break;
+
     case "Emballer":
-      var soloWithinTheSameSymbol = _.chain(this.playersList).without(this.currentPlayer).filter(function(pl){
-        return this.players[pl].announce.name == "Solo 6" && this.players[pl].announce.symbol == symbol;
+      var soloWithinTheSameSymbol = _.chain(self.playersList).without(self.currentPlayer).filter(function(pl){
+        return self.players[pl].announce.name == "Solo 6" && self.players[pl].announce.symbol == symbol;
       }).first().value();
 
       if (!_.isUndefined(soloWithinTheSameSymbol)) {
-        this.players[this.currentPlayer].announce.name = announce;
+        this.players[this.currentPlayer].announce.name = "Emballage 8";
         this.players[this.currentPlayer].announce.symbol = symbol;
         this.players[this.currentPlayer].announce.wasSolo = false;
         this.players[this.currentPlayer].announce.canTalk = true;
         this.players[this.currentPlayer].announce.myFriend = soloWithinTheSameSymbol;
-        this.players[soloWithinTheSameSymbol].announce.name = announce;
+        this.players[soloWithinTheSameSymbol].announce.name = "Emballage 8";
         this.players[soloWithinTheSameSymbol].announce.symbol = symbol;
         this.players[soloWithinTheSameSymbol].announce.wasSolo = true;
         this.players[soloWithinTheSameSymbol].announce.canTalk = false;
@@ -472,30 +486,31 @@ Whist.prototype.dealWithBids = function dealWithBids(bid, symbol) {
 }
 
 Whist.prototype.dealWithCardPlayed = function dealWithCardPlayed(card) {
-  if (this.game.folds.length < this.game.turn) this.game.folds.append(new Cards([]));
+  var self = this;
+  if (self.game.folds.length < self.game.turn) self.game.folds.push(new cardsLib.Cards([]));
 
   // Le premier joue ce qu'il veut
-  if (_.isEmpty(this.game.folds[this.game.turn])) {
-    this.game.folds[this.game.turn].add(this.players[this.currentPlayer].cards.get(card));
+  if (_.isEmpty(self.game.folds[self.game.turn - 1].cards)) {
+    self.game.folds[self.game.turn - 1].add(self.players[self.currentPlayer].cards.get(card));
 
     // Les autres doivent suivre si ils peuvent
-  } else if (this.game.folds[this.game.turn].cards[0].symbol == card.symbol) {
-    this.game.folds[this.game.turn].add(this.players[this.currentPlayer].cards.get(card));
+  } else if (self.game.folds[self.game.turn - 1].cards[0].symbol == card.symbol) {
+    self.game.folds[self.game.turn - 1].add(self.players[self.currentPlayer].cards.get(card));
 
-  } else if (_.any(this.players[this.currentPlayer].cards.cards,function(c) {return this.players[this.currentPlayer].cards.cards[c].symbol == this.game.folds[this.game.turn].cards[0].symbol}) == false) {
-    this.game.folds[this.game.turn].add(this.players[this.currentPlayer].cards.get(card));
+  } else if (_.any(self.players[self.currentPlayer].cards.cards, function(c) {return c.symbol == self.game.folds[self.game.turn - 1].cards[0].symbol}) == false) {
+    self.game.folds[self.game.turn - 1].add(self.players[self.currentPlayer].cards.get(card));
   } else {
-    throw new Error("Le joueur doit suivre");
+    throw new WhistError("Le joueur doit suivre");
   }
 };
 
 Whist.prototype.dealWithTurns = function dealWithTurns() {
   // Si on est à la fin du tour
-  if (this.game.folds[this.game.turn].length === 4) {
+  if (this.game.folds[this.game.turn - 1].getLength() === 4) {
     // On donne une valeur à chaque carte jouée
-    var sym = this.game.folds[this.game.turn].cards[0].symbol;
+    var sym = this.game.folds[this.game.turn - 1].cards[0].symbol;
     var values = [];
-    for (var card of this.game.folds[this.game.turn].cards) {
+    for (var card of this.game.folds[this.game.turn - 1].cards) {
       if (card.symbol == sym) {
         // Si le joueur a suivi, sa carte compte tel quelle
         values.push(card.value);
@@ -510,12 +525,13 @@ Whist.prototype.dealWithTurns = function dealWithTurns() {
 
     // On récupère le joueur ayant gagné le pli
     var winner = this.playersList[(this.playersList.indexOf(this.currentPlayer) + 1 + values.indexOf(_.max(values))) % 4];
-    this.players[winner].folds.append(this.game.folds[this.game.turn]);
+    this.players[winner].folds.push(this.game.folds[this.game.turn - 1]);
     this.currentPlayer = winner;
+    this.game.turn++;
 
   // Si ce n'est pas la fin du tour
   } else {
-    this.currentPlayer = this.nextPlayer();
+    this.currentPlayer = this.getNextPlayer();
   }
 }
 
@@ -532,11 +548,11 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
               if (_.contains(["Solo", "Emballage", "Abondance"], ANNOUNCES[announce].type)) { // Si l'annonce doit être accompagné d'un symbol
                 if (typeof symbol == "string") { // Le symbol doit être défini et de type string
                   if (_.contains(cardsLib.symbols, symbol)) { // Le symbol doit exister
-                    if (_.any(this.players[player].cards, function(card){return card.symbol == symbol})) {
+                    if (_.any(this.players[player].cards.cards, function(card){return card.symbol == symbol})) {
 
                       this.dealWithAnnounce(announce, symbol);
                       var nextState = this.getComputedState();
-                      if (nextState == STATE_ANNOUNCE || nextState == STATE_BIDS) {
+                      if (nextState == STATE_ANNOUNCE || nextState == STATE_ANNOUNCE_AFTER_HOLE || nextState == STATE_BIDS) {
                         this.currentPlayer = this.getNextPlayerFollowingAnnounces();
                       } else if (nextState == STATE_PLAY || nextState == STATE_RETRIEVE_CART) {
                         this.prepareGameToPlay();
@@ -552,9 +568,9 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
 
                 this.dealWithAnnounce(announce);
                 var nextState = this.getComputedState();
-                if (nextState == STATE_ANNOUNCE || nextState == STATE_BIDS) {
+                if (nextState == STATE_ANNOUNCE || nextState == STATE_ANNOUNCE_AFTER_HOLE || nextState == STATE_BIDS) {
                   this.currentPlayer = this.getNextPlayerFollowingAnnounces();
-                } else if (nextState == STATE_PLAY || nextState == STATE_RETRIEVE_CART) {
+                } else if (nextState == STATE_ANNOUNCE || nextState == STATE_ANNOUNCE_AFTER_HOLE) {
                   this.prepareGameToPlay();
                 }
                 this.state = nextState;
@@ -574,7 +590,7 @@ Whist.prototype.play = function play(player, arg1, arg2, arg3) {
               if (typeof symbol == "string") {
                 if (_.contains(cardsLib.symbols, symbol)) {
                   if (cardsLib.symbols.indexOf(this.players[player].announce.symbol) > cardsLib.symbols.indexOf(symbol)) {
-                    if (_.any(this.players[player].cards, function(card){return card.symbol == symbol})) {
+                    if (_.any(this.players[player].cards.cards, function(card){return card.symbol == symbol})) {
 
                       this.dealWithBids(bid, symbol);
                       var nextState = this.getComputedState();

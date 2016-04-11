@@ -66,7 +66,6 @@ socketio.on("connection", function(socket){
           });
           room.nicknames[pl].socket.emit("next turn", {
             "state": game.state,
-            "availableAnnounces": game.getAvailableAnnounces(),
             "currentPlayer": game.currentPlayer
           });
           if (game.state == 2) {
@@ -80,6 +79,7 @@ socketio.on("connection", function(socket){
             room.nicknames[pl].socket.emit("announces", announces);
           }
         }
+        room.nicknames[game.currentPlayer].socket.emit("availableAnnounces",  game.getAvailableAnnounces());
         log.info("New table filled ! Game ID: " + gameId + ", Players: " + players.join(", "));
 
       } else {
@@ -104,41 +104,79 @@ socketio.on("connection", function(socket){
     var gameId = room.nicknames[nick].gameId;
     var game = room.tables[gameId];
     var previousState = game.state;
+    var previousTurn = game.game.turn;
 
-    log.info("[ " + gameId + "]", nick, arg1, arg2);
+    log.info("[" + gameId + "]", nick, arg1, arg2);
 
     try {
-      game.playTurn(nick, arg1, arg2);
+      game.play(nick, arg1, arg2);
     } catch (err) {
       if (err instanceof WhistError) {
         log.warn("[" + gameId + "] " + err.message);
         socket.emit("myerror", err.message);
       } else {
-        socket.emit("myerror", "Une exception interne est survenue. Si le problème persiste, veillez ouvrir un ticket sur la page github du projet (https://github.com/Julien00859/Whist/issues) en précisant votre ID de partie (" + gameId + "). Nous nous efforcerons de résoudre le problème afin de rendre votre expérience de jeu meilleure.");
+        socket.emit("myerror", "Une exception interne est survenue.");
         log.error(err);
       }
       return;
     }
 
-    if (previousState < 4) {
-      var announces = game.playersList.map(function(pl){
-        return {
-          "player": pl,
-          "announce": game.players[pl].announce.name,
-          "symbol": game.players[pl].announce.symbol
-        }
-      });
-      _.each(game.playersList, function(pl){
-        room.nicknames[pl].socket.emit("announces", announces);
-      });
+    switch (previousState) {
+      case 1:
+      case 2:
+      case 3:
+        var announces = game.playersList.map(function(pl){
+          return {
+            "player": pl,
+            "announce": game.players[pl].announce.name,
+            "symbol": game.players[pl].announce.symbol
+          }
+        });
+        _.each(game.playersList, function(pl){
+          room.nicknames[pl].socket.emit("announces", announces);
+        });
+        break;
+
+      case 4:
+        _.each(game.playersList, function(pl){
+          room.nicknames[pl].socket.emit("card retrieved", nick);
+        });
+        break;
+
+      case 5:
+        _.each(game.playersList, function(pl){
+          room.nicknames[pl].socket.emit("card played", nick, arg1);
+        });
+        break;
+
     }
 
-    if (previousState != game.state && game.state == 5 && !_.isUndefined(game.game.trump)) {
-      _.each(game.playersList, function(pl) {
-        room.nicknames[pl].socket.emit("trump", game.game.trump);
-      });
+      if (previousState != game.state && game.state == 5 && !_.isUndefined(game.game.trump)) {
+        _.each(game.playersList, function(pl) {
+          room.nicknames[pl].socket.emit("trump", game.game.trump);
+        });
+      } else if (game.state == 5 && previousTurn < game.game.turn) {
+        _.each(game.playersList, function(pl){
+          room.nicknames[pl].socket.emit("turn won by", game.currentPlayer);
+        })
+      }
+
+    switch (game.state) {
+      case 1:
+      case 2:
+      case 3:
+        _.each(game.playersList, function(pl){
+          room.nicknames[pl].socket.emit("next turn", {state: game.state, currentPlayer: game.currentPlayer});
+        });
+        room.nicknames[game.currentPlayer].socket.emit("availableAnnounces",  game.getAvailableAnnounces());
+      case 4:
+      case 5:
+        _.each(game.playersList, function(pl){
+          room.nicknames[pl].socket.emit("next turn", {state: game.state, currentPlayer: game.currentPlayer, turn: game.turn});
+        })
     }
-    log.info("[" + game.id + "] Current player: " + game.currentPlayer);
+
+    log.info("[" + gameId + "] Current player: " + game.currentPlayer);
   });
 
   socket.on('disconnect', function(){

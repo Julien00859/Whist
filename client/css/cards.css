@@ -5,11 +5,11 @@
   height: 243px;
   width: 167px;
   vertical-align: middle;
-  transition-duration: 1s;
 }
 
 .bottomSide .cards:hover {
-  zoom: 0.55;
+  transition-duration: 1s;
+  transform: translateY(15px);
 }
 
 .cards.♥2 {background-position: 2012px 730px}
