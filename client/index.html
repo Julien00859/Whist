@@ -12,6 +12,7 @@
 
 		<!-- Nos fichiers CSS -->
 		<link href="css/style.css" rel="stylesheet" type="text/css">
+		<link href="css/cards.css" rel="stylesheet" type="text/css">
 
 		<!-- Dépendances JavaScript -->
 		<script src="http://code.jquery.com/jquery-2.2.0.min.js" type="text/javascript"> // jQuery </script>
@@ -23,6 +24,7 @@
 		<!-- Nos scripts -->
 		<script src="js/main.js" type="text/javascript"></script>
 		<script src="js/cards.js" type="text/javascript"></script>
+		<script src="js/style.js" type="text/javascript"></script>
 </head>
 <body ng-controller="Controller as ctrl">
 
@@ -39,8 +41,30 @@
     <ul><li ng-repeat="player in ctrl.game.playersList" ng-bind="player"></li></ul>
   </div>
 
-  <section ng-repeat="player in ctrl.game.playersList" ng-show="ctrl.game.started">
-    <h1 ng-class="ctrl.getSideClass(player, ctrl.players[player].side)">{{player}}</h1>
+  <section ng-repeat="player in ctrl.game.playersList" ng-show="ctrl.game.started" ng-class="ctrl.getSideClass(player, ctrl.players[player].side)">
+		<div class=inner>
+    	<h1>{{player}}</h1>
+      <div ng-repeat="card in ctrl.players[player].cards.cards track by $index" class="cards {{card.toString()}}">{{card.toString()}}</div>
+			<div ng-show="ctrl.players[player].side == 'bottom'">
+				<form name=announces novalidate ng-show="ctrl.game.state <= 3" ng-submit="ctrl.submitAnnounce();">
+					<fieldset>
+						<legend>Announces</legend>
+						<select ng-model="ctrl.selectedAnnounce">
+							<option ng-repeat="ann in ctrl.availableAnnounces" value="{{ann}}" required>{{ann}}</option>
+						</select>
+						<select ng-show="ctrl.needSymbolForm('{{ctrl.selectedAnnounce}}')" ng-model="ctrl.selectedSymbol">
+							<option ng-repeat="sym in ctrl.symbols" value="{{sym}}">{{sym}}</option>
+						</select>
+						<input type=submit value=Announce ng-disabled="ctrl.game.currentPlayer != ctrl.nickname">
+					</fieldset>
+				</form>
+			</div>
+		</div>
   </section>
+
+	<div class="container" ng-show="ctrl.game.started">
+		<section class="boxPli">
+		</section>
+	</div>
 </body>
 </html>

@@ -1,6 +1,6 @@
 const _ = require("underscore");
 
-var symbols = ["Heart","Diamond","Club","Spade"];
+var symbols = ["Heart","Club","Diamond","Spade"];
 var names = ["Two","Three","Four","Five","Six","Seven","Heigh","Nine","Ten","Valet","Queen","King","As"];
 
 var Card = function Card(symbol, name) {

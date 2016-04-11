@@ -24,11 +24,6 @@ section {
   text-align: center;
   margin: 0;
   display: inline-block;
-  border: 1px solid white;
-}
-
-.inner {
-  border: 1px solid black;
 }
 
 .leftSide .inner {
@@ -91,10 +86,14 @@ section {
 	align-items: center;
 }
 .boxPli {
-  background-image: url(../img/bois.jpg);
+  background-image: url("../img/bois.jpg");
   position: absolute;
   top: calc(100% / 3);
   left: 25%;
 	width: 50%;
   height: calc(100% / 3);
+}
+
+form {
+  padding: 0.5em;
 }

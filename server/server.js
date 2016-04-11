@@ -114,6 +114,7 @@ socketio.on("connection", function(socket){
         log.warn("[" + gameId + "] " + err.message);
         socket.emit("myerror", err.message);
       } else {
+        socket.emit("myerror", "Une exception interne est survenue. Si le problème persiste, veillez ouvrir un ticket sur la page github du projet (https://github.com/Julien00859/Whist/issues) en précisant votre ID de partie (" + gameId + "). Nous nous efforcerons de résoudre le problème afin de rendre votre expérience de jeu meilleure.");
         log.error(err);
       }
       return;

@@ -5,7 +5,7 @@ const getCardsFromString = require("../cards.js").getCardsFromString;
 test("Génération", function(){
   var jeu = new Cards();
   equal(jeu.getLength(), 52, "On a 52 cartes dans un jeu classique");
-  deepEqual(_.uniq(jeu.cards.slice().map(function(c){return c.symbol})), ["Heart","Diamond","Club","Spade"], "On a que coeur, carreau, trèffle et pique");
+  deepEqual(_.uniq(jeu.cards.slice().map(function(c){return c.symbol})), ["Heart","Club","Diamond","Spade"], "On a que coeur, carreau, trèffle et pique");
   deepEqual(_.uniq(jeu.cards.slice().map(function(c){return c.name})), ["Two","Three","Four","Five","Six","Seven","Heigh","Nine","Ten","Valet","Queen","King","As"], "On a des noms allant de Deux à As");
   ok(_.every(jeu.cards, function(c){ return _.isNumber(c.value) && c.value >= 2 && c.value <= 14}), "On a des valeurs comprises entre 2 et 14 (As)");
 })

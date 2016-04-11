@@ -1,4 +1,4 @@
-var symbols = ["Heart","Diamond","Club","Spade"];
+var symbols = ["Heart","Club","Diamond","Spade"];
 var names = ["Two","Three","Four","Five","Six","Seven","Heigh","Nine","Ten","Valet","Queen","King","As"];
 
 var HiddenCard = function HiddenCard() {
@@ -7,7 +7,7 @@ var HiddenCard = function HiddenCard() {
   this.symbol = "Hidden";
 }
 HiddenCard.prototype.toString = function toString() {
-  return "??";
+  return "hidden";
 }
 
 var Card = function Card(symbol, name) {
