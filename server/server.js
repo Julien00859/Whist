@@ -14,6 +14,9 @@ const Whist = require("./whist.js").Whist;
 const WhistError = require("./whist.js").WhistError;
 
 // Récupération de la configuration
+
+
+// ajout d'un commentaire
 const config = JSON.parse(fs.readFileSync(pathlib.join(process.cwd(), "config.json"), "utf8"));
 
 // Log les messages de type info et warn dans la console, log les messages de type error et fatal dans le fichier fourni par la configuration
