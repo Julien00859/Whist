@@ -1,0 +1,145 @@
+{
+  "Grand chelem": {
+    "type": "chelem",
+    "fold": 13,
+    "next": null,
+    "score": {
+      "us": 200,
+      "them": 66
+    }
+  },
+  "Petit chelem": {
+    "type": "chelem",
+    "fold": 12,
+    "next": "Grand chelem",
+    "score": {
+      "us": 100,
+      "them": 33
+    }
+  },
+  "Grande misère étalée": {
+    "type": "misère",
+    "fold": 0,
+    "next": null,
+    "score": {
+      "us": 75,
+      "them": 32
+    }
+  },
+  "Abondance 11": {
+    "type": "abondance",
+    "fold": 11,
+    "next": "Petit chelem",
+    "score": {
+      "us": 60,
+      "them": 27
+    }
+  },
+  "Abondance 10": {
+    "type": "abondance",
+    "fold": 10,
+    "next": "Abondance 11",
+    "score": {
+      "us": 42,
+      "them": 25
+    }
+  },
+  "Grande misère": {
+    "type": "misère",
+    "fold": 0,
+    "next": "Grande misère étalée",
+    "score": {
+      "us": 36,
+      "them": 66
+    }
+  },
+  "Trou": {
+    "type": "trou",
+    "fold": 9,
+    "next": null
+  },
+  "Bouche-trou": {
+    "type": "trou",
+    "fold": 9,
+    "next": null
+  },
+  "Abondance 9": {
+    "type": "abondance",
+    "fold": 9,
+    "next": "Abondance 10",
+    "score": {
+      "us": 32,
+      "them": 21
+    }
+  },
+  "Emballage 13": {
+    "type": "emballage",
+    "fold": 13,
+    "next": null
+  },
+  "Piccolo": {
+    "type": "piccolo",
+    "fold": 1,
+    "next": "Grande misère",
+    "score": {
+      "us": 24,
+      "them": 16
+    }
+  },
+  "Solo 8": {
+    "type": "solo",
+    "fold": 8,
+    "next": null
+  },
+  "Emballage 12": {
+    "type": "emballage",
+    "fold": 12,
+    "next": "Emballage 13"
+  },
+  "Petite misère": {
+    "type": "misère",
+    "fold": 0,
+    "next": "Grande misère",
+    "score": {
+      "us": 18,
+      "them": 12
+    }
+  },
+  "Emballage 11": {
+    "type": "emballage",
+    "fold": 11,
+    "next": "Emballage 12"
+  },
+  "Solo 7": {
+    "type": "solo",
+    "fold": 7,
+    "next": "Solo 8"
+  },
+  "Emballage 10": {
+    "type": "emballage",
+    "fold": 10,
+    "next": "Emballage 11"
+  },
+  "Solo 6": {
+    "type": "solo",
+    "fold": 6,
+    "next": "Solo 7"
+  },
+  "Emballage 9": {
+    "type": "emballage",
+    "fold": 9,
+    "next": "Emballage 10"
+  },
+  "Emballage 8": {
+    "type": "emballage",
+    "fold": 8,
+    "next": "Emballage 9"
+  },
+  "Premier": {
+    "type": "passer"
+  },
+  "Passer": {
+    "type": "passer",
+    "next": null
+  }
+}
