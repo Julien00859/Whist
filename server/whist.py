@@ -13,7 +13,9 @@ def compute_score(bid, fold):
                     (10 + (scores[bid]['fold'] - 6) * (scores[bid]['fold'] - 5))
                      + 2 * (scores[bid]['fold'] - fold - 1))
     elif scores[bid]['type'] == 'emballage':
-        if fold >= scores[bid]['fold']:
+        if fold == 13:
+            return (30, 0)
+        elif fold >= scores[bid]['fold']:
             return (7 + 3 * (fold - 8), 0)
         else:
             loose = -61 + (fold * 3) + (13 - scores[bid]['fold']) * 6

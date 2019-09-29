@@ -75,7 +75,54 @@ class TestScore(unittest.TestCase):
         for fold, truth in enumerate(truths):
             with self.subTest(fold=fold):
                 self.assertEqual(whist.compute_score('Solo 8', fold), truth)
-        
+
+    def testEmballage8(self):
+        truths = [(-31, 31), (-28, 28), (-25, 25), (-22, 22), (-19, 19),
+                  (-16, 16), (-13, 13), (-10, 10), (7, 0), (10, 0), (13, 0),
+                  (16, 0), (19, 0), (30, 0)]
+        for fold, truth in enumerate(truths):
+            with self.subTest(fold=fold):
+                self.assertEqual(whist.compute_score('Emballage 8', fold), truth)
+
+    def testEmballage9(self):
+        truths = [(-37, 37), (-34, 34), (-31, 31), (-28, 28), (-25, 25),
+                  (-22, 22), (-19, 19), (-16, 16), (-13, 13), (10, 0), (13, 0),
+                  (16, 0), (19, 0), (30, 0)]
+        for fold, truth in enumerate(truths):
+            with self.subTest(fold=fold):
+                self.assertEqual(whist.compute_score('Emballage 9', fold), truth)
+
+    def testEmballage10(self):
+        truths = [(-43, 43), (-40, 40), (-37, 37), (-34, 34), (-31, 31),
+                  (-28, 28), (-25, 25), (-22, 22), (-19, 19), (-16, 16),
+                  (13, 0), (16, 0), (19, 0), (30, 0)]
+        for fold, truth in enumerate(truths):
+            with self.subTest(fold=fold):
+                self.assertEqual(whist.compute_score('Emballage 10', fold), truth)
+
+    def testEmballage11(self):
+        truths = [(-49, 49), (-46, 46), (-43, 43), (-40, 40), (-37, 37),
+                  (-34, 34), (-31, 31), (-28, 28), (-25, 25), (-22, 22),
+                  (-19, 19), (16, 0), (19, 0), (30, 0)]
+        for fold, truth in enumerate(truths):
+            with self.subTest(fold=fold):
+                self.assertEqual(whist.compute_score('Emballage 11', fold), truth)
+
+    def testEmballage12(self):
+        truths = [(-55, 55), (-52, 52), (-49, 49), (-46, 46), (-43, 43),
+                  (-40, 40), (-37, 37), (-34, 34), (-31, 31), (-28, 28),
+                  (-25, 25), (-22, 22), (19, 0), (30, 0)]
+        for fold, truth in enumerate(truths):
+            with self.subTest(fold=fold):
+                self.assertEqual(whist.compute_score('Emballage 12', fold), truth)
+
+    def testEmballage13(self):
+        truths = [(-61, 61), (-58, 58), (-55, 55), (-52, 52), (-49, 49),
+                  (-46, 46), (-43, 43), (-40, 40), (-37, 37), (-34, 34),
+                  (-31, 31), (-28, 28), (-25, 25), (30, 0)]
+        for fold, truth in enumerate(truths):
+            with self.subTest(fold=fold):
+                self.assertEqual(whist.compute_score('Emballage 13', fold), truth)
 
 
 if __name__ == '__main__':
